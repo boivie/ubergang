@@ -78,7 +78,7 @@ func (s *ApiModule) handleMqttExport(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/x-yaml")
 	w.Header().Set("Content-Disposition", "attachment; filename=mqtt-config.yaml")
 	w.WriteHeader(http.StatusOK)
-	w.Write(yamlData)
+	_, _ = w.Write(yamlData)
 }
 
 func (s *ApiModule) handleMqttImport(w http.ResponseWriter, r *http.Request) {

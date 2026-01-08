@@ -35,7 +35,7 @@ func (s *Proxy) HandleAuthorize(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if redirect == "" {
-		w.Write([]byte("Authorized\n"))
+		_, _ = w.Write([]byte("Authorized\n"))
 	} else {
 		http.Redirect(w, r, redirect, http.StatusFound)
 	}

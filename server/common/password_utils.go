@@ -8,7 +8,7 @@ import (
 
 func CheckPassword(hashedPassword, cleartextPassword string) error {
 	if hashedPassword == "" {
-		return errors.New("Empty hashed password")
+		return errors.New("empty hashed password")
 	}
 	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(cleartextPassword))
 }

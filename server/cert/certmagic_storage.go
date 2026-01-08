@@ -132,7 +132,7 @@ func (s *CertMagicStorage) List(ctx context.Context, path string, recursive bool
 				keys = append(keys, keyName)
 			} else if len(parts) > 1 {
 				// Directory - add only the first component
-				dirName := path
+				var dirName string
 				if path != "" {
 					dirName = path + "/" + parts[0]
 				} else {

@@ -201,7 +201,7 @@ func (f *Fixture) SigninFromConfirmedPollId(pollId string) *http.Cookie {
 func (f *Fixture) request(method, url string, req interface{}, cookie *http.Cookie, res interface{}) *httptest.ResponseRecorder {
 	buf := bytes.Buffer{}
 	if req != nil {
-		json.NewEncoder(&buf).Encode(req)
+		_ = json.NewEncoder(&buf).Encode(req)
 	}
 
 	httpReq, _ := http.NewRequest(method, url, &buf)
@@ -213,7 +213,7 @@ func (f *Fixture) request(method, url string, req interface{}, cookie *http.Cook
 	}
 	f.router.ServeHTTP(rr, httpReq)
 	if rr.Code == http.StatusOK && res != nil {
-		json.NewDecoder(rr.Body).Decode(res)
+		_ = json.NewDecoder(rr.Body).Decode(res)
 	}
 	return rr
 }
@@ -327,7 +327,7 @@ func (f *Fixture) GenerateCredential(request *api.ApiEnrollRequest) (virtualweba
 		Response attestationResponse `json:"response"`
 	}
 	var result attestationResult
-	json.Unmarshal([]byte(att), &result)
+	_ = json.Unmarshal([]byte(att), &result)
 
 	return cred, &api.ApiAuthenticatorAttestationResponse{
 		ID:                result.ID,
@@ -370,7 +370,7 @@ func (f *Fixture) SignAssertionRequest(req *api.ApiAssertionRequest, userHandleB
 		Response assertionResponse `json:"response"`
 	}
 	var result assertionResult
-	json.Unmarshal([]byte(ar), &result)
+	_ = json.Unmarshal([]byte(ar), &result)
 
 	return &api.ApiAssertionCredential{
 		ID: result.ID,

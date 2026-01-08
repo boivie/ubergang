@@ -83,10 +83,10 @@ func (w *WA) CreateCredential(user *models.User, sess *models.Session, state *mo
 	}
 
 	response := protocol.CredentialCreationResponse{}
-	response.Credential.Type = "public-key"
-	response.Credential.ID = attestationResponse.ID
+	response.Type = "public-key"
+	response.ID = attestationResponse.ID
 	clientDecoded, _ := base64.RawURLEncoding.DecodeString(attestationResponse.ClientDataJSON)
-	response.AttestationResponse.AuthenticatorResponse.ClientDataJSON = protocol.URLEncodedBase64(clientDecoded)
+	response.AttestationResponse.ClientDataJSON = protocol.URLEncodedBase64(clientDecoded)
 	decoded, _ := base64.RawURLEncoding.DecodeString(attestationResponse.AttestationObject)
 	response.AttestationResponse.AttestationObject = protocol.URLEncodedBase64(decoded)
 	response.AttestationResponse.Transports = attestationResponse.Transports

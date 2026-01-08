@@ -37,8 +37,12 @@ func New(config *models.Configuration, db *db.DB) *WA {
 	if err != nil {
 		panic(err)
 	}
-	defer file.Close()
-	json.NewDecoder(file).Decode(&aaguidMap)
+	defer func() {
+		_ = file.Close()
+	}()
+	if err := json.NewDecoder(file).Decode(&aaguidMap); err != nil {
+		panic(err)
+	}
 
 	wconfig := &webauthn.Config{
 		RPID:                  rpId,

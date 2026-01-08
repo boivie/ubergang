@@ -20,7 +20,8 @@ func setupAndCreateCredential(t *testing.T) (*Fixture, *http.Cookie, api.ApiCred
 	request, err := f.StartEnroll(cookie)
 	require.NoError(t, err)
 	_, res := f.GenerateCredential(request.EnrollRequest)
-	f.FinishEnroll(cookie, request.EnrollRequest.Token, res)
+	_, err = f.FinishEnroll(cookie, request.EnrollRequest.Token, res)
+	require.NoError(t, err)
 
 	user := f.getUser(cookie, "me")
 	if len(user.Credentials) != 1 {

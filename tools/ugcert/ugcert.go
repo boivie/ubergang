@@ -170,8 +170,8 @@ func updateKey(cCtx *cli.Context) error {
 	b.WriteString(publicKey.Type())
 	b.WriteByte(' ')
 	e := base64.NewEncoder(base64.StdEncoding, b)
-	e.Write(publicKey.Marshal())
-	e.Close()
+	_, _ = e.Write(publicKey.Marshal())
+	_ = e.Close()
 	b.WriteByte(' ')
 	b.WriteString(name)
 	b.WriteByte('\n')
@@ -201,16 +201,16 @@ func updateKey(cCtx *cli.Context) error {
 	}
 	fmt.Printf("To continue, visit %s in a browser\n", res.ConfirmUrl)
 
-	browser.OpenURL(res.ConfirmUrl)
+	_ = browser.OpenURL(res.ConfirmUrl)
 	return nil
 }
 
 func addKey(cCtx *cli.Context) error {
-	u, err := url.Parse(cCtx.Args().First())
+	u, _ := url.Parse(cCtx.Args().First())
 	keyID := strings.TrimPrefix(u.Path, "/")
 
 	var key api.ApiSSHKey
-	err = requests.
+	err := requests.
 		URL(fmt.Sprintf("/api/authorized_key/%s", keyID)).
 		Host(u.Hostname()).
 		ToJSON(&key).

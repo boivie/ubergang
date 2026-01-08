@@ -40,5 +40,7 @@ func main() {
 	}
 
 	logger.Println("Server is starting...")
-	s.Serve()
+	if err := s.Serve(); err != nil {
+		logger.Fatal(err)
+	}
 }

@@ -49,7 +49,9 @@ func New(log *log.Log, dbFile string) (*DB, error) {
 }
 
 func (d *DB) Close() {
-	d.db.Close()
+	if err := d.db.Close(); err != nil {
+		d.log.Warnf("Error closing database: %v", err)
+	}
 }
 
 func sshServertKeyKey() []byte {
@@ -278,7 +280,7 @@ func (d *DB) GetSession(id string) (user *models.User, session *models.Session, 
 }
 
 func (d *DB) ListSessions(userId string) (ret []*models.Session) {
-	d.db.View(func(tx *bolt.Tx) error {
+	_ = d.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket(BucketName)
 		c := b.Cursor()
 		prefix := []byte(fmt.Sprintf("user-sess:%s:", userId))
@@ -297,7 +299,7 @@ func (d *DB) ListSessions(userId string) (ret []*models.Session) {
 }
 
 func (d *DB) ListBackends() (ret []*models.Backend) {
-	d.db.View(func(tx *bolt.Tx) error {
+	_ = d.db.View(func(tx *bolt.Tx) error {
 		c := tx.Bucket(BucketName).Cursor()
 		prefix := []byte("be:")
 		for k, v := c.Seek(prefix); k != nil && bytes.HasPrefix(k, prefix); k, v = c.Next() {
@@ -313,7 +315,7 @@ func (d *DB) ListBackends() (ret []*models.Backend) {
 }
 
 func (d *DB) ListUsers() (ret []*models.User) {
-	d.db.View(func(tx *bolt.Tx) error {
+	_ = d.db.View(func(tx *bolt.Tx) error {
 		c := tx.Bucket(BucketName).Cursor()
 		prefix := []byte("user:")
 		for k, v := c.Seek(prefix); k != nil && bytes.HasPrefix(k, prefix); k, v = c.Next() {
@@ -350,7 +352,7 @@ func (d *DB) DeleteUser(userId string) error {
 		user := &models.User{}
 		if err := proto.Unmarshal(v, user); err == nil {
 			if user.Email != "" {
-				b.Delete(emailKey(user.Email))
+				_ = b.Delete(emailKey(user.Email))
 			}
 		}
 		// TODO: Delete associated objects like credentials, sessions etc
@@ -375,10 +377,7 @@ func (d *DB) DeleteSession(sessionId string) error {
 		} else {
 			// Delete user-session index key
 			userSessionKey := []byte(fmt.Sprintf("user-sess:%s:%s", session.UserId, sessionId))
-			err := b.Delete(userSessionKey)
-			if err != nil {
-				// Not fatal
-			}
+			_ = b.Delete(userSessionKey) // Ignore error - not fatal
 		}
 
 		return b.Delete(key)
@@ -535,17 +534,21 @@ func (d *DB) UpdateUser(userId string, update_fn func(old *models.User) (*models
 		}
 		if oldEmail != new_obj.Email {
 			if oldEmail != "" {
-				b.Delete(emailKey(oldEmail))
+				_ = b.Delete(emailKey(oldEmail))
 			}
 			if new_obj.Email != "" {
-				b.Put(emailKey(new_obj.Email), []byte(userId))
+				if err := b.Put(emailKey(new_obj.Email), []byte(userId)); err != nil {
+					return err
+				}
 			}
 		}
 		for token := range diff(oldTokens, newTokens) {
-			b.Delete(signinTokenKey(token))
+			_ = b.Delete(signinTokenKey(token))
 		}
 		for token := range diff(newTokens, oldTokens) {
-			b.Put(signinTokenKey(token), []byte(userId))
+			if err := b.Put(signinTokenKey(token), []byte(userId)); err != nil {
+				return err
+			}
 		}
 		serialized, err := proto.Marshal(new_obj)
 		if err != nil {
@@ -586,7 +589,7 @@ func (d *DB) GetUserBySigninRequest(token string) (ret *models.User, err error) 
 }
 
 func (d *DB) ListCredentials(userId string) (ret []*models.Credential) {
-	d.db.View(func(tx *bolt.Tx) error {
+	_ = d.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket(BucketName)
 		c := b.Cursor()
 		prefix := []byte(fmt.Sprintf("user-cred:%s:", userId))
@@ -626,8 +629,8 @@ func (d *DB) UpdateCredential(credentialId string, update_fn func(old *models.Cr
 		if new_obj == nil {
 			// Credential is to be deleted.
 			if old_obj != nil {
-				b.Delete([]byte(fmt.Sprintf("user-cred:%s:%s", old_obj.UserId, old_obj.Id)))
-				b.Delete(key)
+				_ = b.Delete([]byte(fmt.Sprintf("user-cred:%s:%s", old_obj.UserId, old_obj.Id)))
+				_ = b.Delete(key)
 			}
 			return nil
 		}
@@ -665,7 +668,7 @@ func (d *DB) UpdateBackend(fqdn string, update_fn func(old *models.Backend) (*mo
 		if new_obj == nil {
 			// Backend is to be deleted.
 			if old_obj != nil {
-				b.Delete(key)
+				_ = b.Delete(key)
 			}
 			return nil
 		}
@@ -682,7 +685,7 @@ func (d *DB) UpdateBackend(fqdn string, update_fn func(old *models.Backend) (*mo
 }
 
 func (d *DB) ListSshKeys(userId string) (ret []*models.SshKey) {
-	d.db.View(func(tx *bolt.Tx) error {
+	_ = d.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket(BucketName)
 		c := b.Cursor()
 		prefix := []byte(fmt.Sprintf("user-ssh-key:%s:", userId))
@@ -756,12 +759,16 @@ func (d *DB) UpdateSshKey(sshKeyId string, update_fn func(old *models.SshKey) (*
 		}
 		if !bytes.Equal(oldFingerprint, ret.Sha256Fingerprint) {
 			if oldFingerprint != nil {
-				b.Delete(sshFingerprintKey(oldFingerprint))
+				_ = b.Delete(sshFingerprintKey(oldFingerprint))
 			}
-			b.Put(sshFingerprintKey(ret.Sha256Fingerprint), []byte(sshKeyId))
+			if err := b.Put(sshFingerprintKey(ret.Sha256Fingerprint), []byte(sshKeyId)); err != nil {
+				return err
+			}
 		}
 		if old_obj == nil {
-			b.Put([]byte(fmt.Sprintf("user-ssh-key:%s:%s", ret.UserId, ret.Id)), []byte{})
+			if err := b.Put([]byte(fmt.Sprintf("user-ssh-key:%s:%s", ret.UserId, ret.Id)), []byte{}); err != nil {
+				return err
+			}
 		}
 		return b.Put(sshKeyKey(sshKeyId), serialized)
 	})
@@ -943,7 +950,7 @@ func (d *DB) UpdateMqttProfile(id string, update_fn func(old *models.MqttProfile
 }
 
 func (d *DB) ListMqttProfiles() (ret []*models.MqttProfile) {
-	d.db.View(func(tx *bolt.Tx) error {
+	_ = d.db.View(func(tx *bolt.Tx) error {
 		c := tx.Bucket(BucketName).Cursor()
 		prefix := []byte("mqtt-profile:")
 		for k, v := c.Seek(prefix); k != nil && bytes.HasPrefix(k, prefix); k, v = c.Next() {
@@ -1012,7 +1019,7 @@ func (d *DB) UpdateMqttClient(id string, update_fn func(old *models.MqttClient) 
 }
 
 func (d *DB) ListMqttClients() (ret []*models.MqttClient) {
-	d.db.View(func(tx *bolt.Tx) error {
+	_ = d.db.View(func(tx *bolt.Tx) error {
 		c := tx.Bucket(BucketName).Cursor()
 		prefix := []byte("mqtt-client:")
 		for k, v := c.Seek(prefix); k != nil && bytes.HasPrefix(k, prefix); k, v = c.Next() {

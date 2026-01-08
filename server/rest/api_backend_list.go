@@ -25,7 +25,7 @@ func ToBackend(b *models.Backend) api.ApiBackend {
 		updatedAt = b.UpdatedAt.AsTime().Format(time.RFC3339)
 	}
 
-	accessLevel := "NORMAL"
+	var accessLevel string
 	switch b.AccessLevel {
 	case models.AccessLevel_PUBLIC:
 		accessLevel = "PUBLIC"

@@ -26,7 +26,7 @@ var upgrader = websocket.Upgrader{
 // handleProxyTestIndex serves the HTML test page
 func (s *ApiModule) handleProxyTestIndex(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.Write([]byte(testPageHTML))
+	_, _ = w.Write([]byte(testPageHTML))
 }
 
 // handleProxyTestEcho echoes back request with all headers
@@ -65,7 +65,9 @@ func (s *ApiModule) handleProxyTestWebSocket(w http.ResponseWriter, r *http.Requ
 		s.log.Error("WebSocket upgrade failed", "error", err)
 		return
 	}
-	defer conn.Close()
+	defer func() {
+		_ = conn.Close()
+	}()
 
 	for {
 		messageType, message, err := conn.ReadMessage()
@@ -97,7 +99,7 @@ func (s *ApiModule) handleProxyTestSSE(w http.ResponseWriter, r *http.Request) {
 	for i := 1; i <= 10; i++ {
 		data := fmt.Sprintf("data: {\"count\": %d, \"timestamp\": \"%s\"}\n\n",
 			i, time.Now().Format(time.RFC3339))
-		fmt.Fprint(w, data)
+		_, _ = fmt.Fprint(w, data)
 		flusher.Flush()
 
 		if i < 10 {
@@ -118,17 +120,17 @@ func (s *ApiModule) handleProxyTestChunked(w http.ResponseWriter, r *http.Reques
 	}
 
 	// Send opening bracket
-	fmt.Fprint(w, "[")
+	_, _ = fmt.Fprint(w, "[")
 	flusher.Flush()
 
 	// Send 5 chunks with delays
 	for i := 1; i <= 5; i++ {
 		if i > 1 {
-			fmt.Fprint(w, ",")
+			_, _ = fmt.Fprint(w, ",")
 		}
 		chunk := fmt.Sprintf("{\"chunk\":%d,\"timestamp\":\"%s\"}",
 			i, time.Now().Format(time.RFC3339))
-		fmt.Fprint(w, chunk)
+		_, _ = fmt.Fprint(w, chunk)
 		flusher.Flush()
 
 		if i < 5 {
@@ -137,7 +139,7 @@ func (s *ApiModule) handleProxyTestChunked(w http.ResponseWriter, r *http.Reques
 	}
 
 	// Send closing bracket
-	fmt.Fprint(w, "]")
+	_, _ = fmt.Fprint(w, "]")
 	flusher.Flush()
 }
 
@@ -333,7 +335,7 @@ func (s *ApiModule) handleProxyTestStatus(w http.ResponseWriter, r *http.Request
 	w.WriteHeader(code)
 
 	// Write a body so we can verify the proxy passes error bodies too
-	w.Write([]byte(fmt.Sprintf("Status: %d", code)))
+	_, _ = fmt.Fprintf(w, "Status: %d", code)
 }
 
 // handleProxyTestCookies sets multiple cookies to test header folding
@@ -357,7 +359,9 @@ func (s *ApiModule) handleProxyTestCompression(w http.ResponseWriter, r *http.Re
 
 	// Create gzip writer wrapping the response writer
 	gw := gzip.NewWriter(w)
-	defer gw.Close()
+	defer func() {
+		_ = gw.Close()
+	}()
 
 	// Create data that compresses well (lots of repetition)
 	largeString := ""
@@ -371,7 +375,7 @@ func (s *ApiModule) handleProxyTestCompression(w http.ResponseWriter, r *http.Re
 	}
 
 	// Write JSON directly to the gzip writer
-	json.NewEncoder(gw).Encode(data)
+	_ = json.NewEncoder(gw).Encode(data)
 }
 
 // RegisterTestEndpoints registers proxy testing endpoints (no Host requirement)

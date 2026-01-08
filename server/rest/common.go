@@ -7,7 +7,7 @@ import (
 
 func jsonify(w http.ResponseWriter, response interface{}) {
 	w.Header().Add("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	_ = json.NewEncoder(w).Encode(response)
 }
 
 func parseJsonRequest(w http.ResponseWriter, r *http.Request, req interface{}) error {
