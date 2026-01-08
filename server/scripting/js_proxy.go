@@ -89,12 +89,9 @@ func convertToRegex(path string) (*regexp.Regexp, []string) {
 	}
 
 	// 2. Replace :names with a regex capture group ([^/]+)
-	// We escape the path first to handle dots or other regex chars
-	pattern := regexp.QuoteMeta(path)
-
 	// QuoteMeta escapes our : symbols, so we need to account for that
 	// when replacing. A simpler way is to replace :name with the group:
-	pattern = paramRegex.ReplaceAllString(path, `([^/]+)`)
+	pattern := paramRegex.ReplaceAllString(path, `([^/]+)`)
 
 	// 3. Handle wildcards (*)
 	pattern = strings.ReplaceAll(pattern, "*", "(.*)")
@@ -135,18 +132,18 @@ func (p *JSProxy) registerHandlers() {
 		}
 	}
 
-	proxyObj.Set("get", addRoute("GET"))
-	proxyObj.Set("post", addRoute("POST"))
-	proxyObj.Set("all", addRoute(""))
+	_ = proxyObj.Set("get", addRoute("GET"))
+	_ = proxyObj.Set("post", addRoute("POST"))
+	_ = proxyObj.Set("all", addRoute(""))
 
-	p.runtime.Set("proxy", proxyObj)
+	_ = p.runtime.Set("proxy", proxyObj)
 
 	// Expose MQTT API if publisher is available
 	if p.mqttPub != nil {
 		mqttObj := p.runtime.NewObject()
 
 		// mqtt.publish(topic, payload, options)
-		mqttObj.Set("publish", func(call goja.FunctionCall) goja.Value {
+		_ = mqttObj.Set("publish", func(call goja.FunctionCall) goja.Value {
 			if len(call.Arguments) < 2 {
 				panic(p.runtime.NewTypeError("mqtt.publish requires topic and payload"))
 			}
@@ -179,11 +176,11 @@ func (p *JSProxy) registerHandlers() {
 		})
 
 		// mqtt.isConnected()
-		mqttObj.Set("isConnected", func(call goja.FunctionCall) goja.Value {
+		_ = mqttObj.Set("isConnected", func(call goja.FunctionCall) goja.Value {
 			return p.runtime.ToValue(p.mqttPub.IsConnected())
 		})
 
-		p.runtime.Set("mqtt", mqttObj)
+		_ = p.runtime.Set("mqtt", mqttObj)
 	}
 }
 
@@ -210,7 +207,7 @@ func (p *JSProxy) MatchAndExecute(w http.ResponseWriter, r *http.Request) bool {
 	}
 	// Fallback to 404 (Outcome 1)
 	w.WriteHeader(http.StatusNotFound)
-	w.Write([]byte("Not Found"))
+	_, _ = w.Write([]byte("Not Found"))
 	return false
 }
 
@@ -221,41 +218,41 @@ func (p *JSProxy) executeHandler(w http.ResponseWriter, r *http.Request, handler
 
 	// Create the 'req' object
 	reqObj := p.runtime.NewObject()
-	reqObj.Set("method", r.Method)
-	reqObj.Set("path", r.URL.Path)
-	reqObj.Set("params", params)
-	reqObj.Set("headers", headersToMap(r.Header))
+	_ = reqObj.Set("method", r.Method)
+	_ = reqObj.Set("path", r.URL.Path)
+	_ = reqObj.Set("params", params)
+	_ = reqObj.Set("headers", headersToMap(r.Header))
 
 	// Optional: Parse Query String
 	queryMap := make(map[string]string)
 	for k, v := range r.URL.Query() {
 		queryMap[k] = v[0]
 	}
-	reqObj.Set("query", queryMap)
+	_ = reqObj.Set("query", queryMap)
 
 	// Create the 'res' object
 	resObj := p.runtime.NewObject()
 	statusCode := http.StatusOK
 
 	// res.status(code)
-	resObj.Set("status", func(call goja.FunctionCall) goja.Value {
+	_ = resObj.Set("status", func(call goja.FunctionCall) goja.Value {
 		statusCode = int(call.Argument(0).ToInteger())
 		return resObj // Allow chaining: res.status(200).send(...)
 	})
 
 	// res.send(body)
-	resObj.Set("send", func(call goja.FunctionCall) goja.Value {
+	_ = resObj.Set("send", func(call goja.FunctionCall) goja.Value {
 		if responseSent || shouldProxy {
 			return goja.Undefined()
 		}
 		responseSent = true
 		w.WriteHeader(statusCode)
-		w.Write([]byte(call.Argument(0).String()))
+		_, _ = w.Write([]byte(call.Argument(0).String()))
 		return goja.Undefined()
 	})
 
 	// res.json(obj)
-	resObj.Set("json", func(call goja.FunctionCall) goja.Value {
+	_ = resObj.Set("json", func(call goja.FunctionCall) goja.Value {
 		if responseSent || shouldProxy {
 			return goja.Undefined()
 		}
@@ -263,12 +260,12 @@ func (p *JSProxy) executeHandler(w http.ResponseWriter, r *http.Request, handler
 		data, _ := json.Marshal(call.Argument(0).Export())
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(statusCode)
-		w.Write(data)
+		_, _ = w.Write(data)
 		return goja.Undefined()
 	})
 
 	// res.proxy() - The signal to take Outcome 3
-	resObj.Set("proxy", func(call goja.FunctionCall) goja.Value {
+	_ = resObj.Set("proxy", func(call goja.FunctionCall) goja.Value {
 		shouldProxy = true
 		return goja.Undefined()
 	})
@@ -279,7 +276,7 @@ func (p *JSProxy) executeHandler(w http.ResponseWriter, r *http.Request, handler
 		// Handle JS runtime errors as 500s
 		if !responseSent {
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(fmt.Sprintf("JS Error: %v", err)))
+			_, _ = fmt.Fprintf(w, "JS Error: %v", err)
 		}
 		return false
 	}

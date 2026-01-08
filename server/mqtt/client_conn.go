@@ -48,8 +48,12 @@ func (c *connection) handleBrokerConn() {
 		c.parent.log.Infof("mqtt/c%d/%s/broker: "+format, append([]interface{}{c.connId, c.clientConfig.Id}, args...)...)
 	}
 
-	defer c.clientConn.Close()
-	defer c.brokerConn.Close()
+	defer func() {
+		_ = c.clientConn.Close()
+	}()
+	defer func() {
+		_ = c.brokerConn.Close()
+	}()
 	for {
 		controlPacket, err := packets.ReadPacket(c.brokerConn)
 		if err != nil {
@@ -69,24 +73,24 @@ func (c *connection) handleBrokerConn() {
 				c.parent.log.Warnf("c%d: ERROR: Received unsolicited SUBACK from broker: %s", c.connId, packet.String())
 			} else {
 				subAck := createClientSubAck(subscription.clientSubscribe, subscription.brokerSubscribe, packet)
-				subAck.Write(c.clientConn)
+				_ = subAck.Write(c.clientConn)
 			}
 
 		case *packets.PublishPacket:
 			subscribeMessagesMetric.WithLabelValues(c.clientConfig.Id).Inc()
-			packet.Write(c.clientConn)
+			_ = packet.Write(c.clientConn)
 		case *packets.UnsubackPacket:
-			packet.Write(c.clientConn)
+			_ = packet.Write(c.clientConn)
 		case *packets.PingrespPacket:
-			packet.Write(c.clientConn)
+			_ = packet.Write(c.clientConn)
 		case *packets.PubackPacket:
-			packet.Write(c.clientConn)
+			_ = packet.Write(c.clientConn)
 		case *packets.PubrecPacket:
-			packet.Write(c.clientConn)
+			_ = packet.Write(c.clientConn)
 		case *packets.PubrelPacket:
-			packet.Write(c.clientConn)
+			_ = packet.Write(c.clientConn)
 		case *packets.PubcompPacket:
-			packet.Write(c.clientConn)
+			_ = packet.Write(c.clientConn)
 		default:
 			logg("Unexpected packet: %v", packet.String())
 		}
@@ -109,25 +113,25 @@ func (c *connection) serveClient(connect *packets.ConnectPacket) {
 			// TODO: The alternative is to rewrite the connect message, but then
 			// the "remaining length" will need to be updated.
 			logg("Aborting connection as will topic not allowed")
-			serverUnavailable().Write(c.clientConn)
+			_ = serverUnavailable().Write(c.clientConn)
 			return
 		}
 	}
-	connect.Write(c.brokerConn)
+	_ = connect.Write(c.brokerConn)
 
 	controlPacket, err := packets.ReadPacket(c.brokerConn)
 	if err != nil {
 		logg("Failed to send CONNECT to broker: %v", err)
-		serverUnavailable().Write(c.clientConn)
+		_ = serverUnavailable().Write(c.clientConn)
 		return
 	}
 	packet, ok := controlPacket.(*packets.ConnackPacket)
 	if !ok {
 		logg("Failed to read CONNACK from broker: %v", err)
-		serverUnavailable().Write(c.clientConn)
+		_ = serverUnavailable().Write(c.clientConn)
 		return
 	}
-	packet.Write(c.clientConn)
+	_ = packet.Write(c.clientConn)
 	if packet.ReturnCode != 0 {
 		logg("CONNACK return code: %d - exiting", packet.ReturnCode)
 		return
@@ -163,7 +167,7 @@ func (c *connection) serveClient(connect *packets.ConnectPacket) {
 				log.Println("Subscribe contains no valid topics - ignoring")
 				// No valid topics to subscribe to. Don't proxy through broker.
 				ack := createClientSubAck(packet, brokerSubscribe, nil)
-				ack.Write(c.clientConn)
+				_ = ack.Write(c.clientConn)
 			} else {
 				// When the SUBACK response comes from the broker, send a modified
 				// SUBACK packet to the client.
@@ -173,12 +177,12 @@ func (c *connection) serveClient(connect *packets.ConnectPacket) {
 					brokerSubscribe: brokerSubscribe,
 				}
 				c.mu.Unlock()
-				brokerSubscribe.Write(c.brokerConn)
+				_ = brokerSubscribe.Write(c.brokerConn)
 			}
 
 		case *packets.UnsubscribePacket:
 			// TODO: Only unsubscribe from topics the client has really subscribed to.
-			packet.Write(c.brokerConn)
+			_ = packet.Write(c.brokerConn)
 
 		case *packets.PublishPacket:
 			class := c.acl.ValidatePublishTopic(packet.TopicName)
@@ -186,20 +190,20 @@ func (c *connection) serveClient(connect *packets.ConnectPacket) {
 				packet.TopicName = "_ug/pub/blocked/" + c.clientConfig.Id + "/" + packet.TopicName
 			}
 			publishMetric.WithLabelValues(c.clientConfig.Id, c.clientConfig.ProfileId, ClassificationToString(class)).Inc()
-			packet.Write(c.brokerConn)
+			_ = packet.Write(c.brokerConn)
 
 		case *packets.PingreqPacket:
-			packet.Write(c.brokerConn)
+			_ = packet.Write(c.brokerConn)
 		case *packets.PubackPacket:
-			packet.Write(c.brokerConn)
+			_ = packet.Write(c.brokerConn)
 		case *packets.PubrecPacket:
-			packet.Write(c.brokerConn)
+			_ = packet.Write(c.brokerConn)
 		case *packets.PubrelPacket:
-			packet.Write(c.brokerConn)
+			_ = packet.Write(c.brokerConn)
 		case *packets.PubcompPacket:
-			packet.Write(c.brokerConn)
+			_ = packet.Write(c.brokerConn)
 		case *packets.DisconnectPacket:
-			packet.Write(c.brokerConn)
+			_ = packet.Write(c.brokerConn)
 			logg("Received DISCONNECT - closing connection")
 			return
 

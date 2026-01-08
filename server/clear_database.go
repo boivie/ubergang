@@ -21,7 +21,9 @@ func (s *Server) ClearDatabase() {
 	}
 
 	if confirm {
-		s.db.ClearDatabase()
+		if err := s.db.ClearDatabase(); err != nil {
+			log.Fatalf("Failed to clear database: %v", err)
+		}
 		fmt.Println("Database cleared.")
 	} else {
 		fmt.Println("Aborted.")

@@ -105,7 +105,7 @@ func NewServer(dbFile string, assets *embed.FS) *Server {
 		uglog.SetLogLevel(logrus.DebugLevel)
 	}
 
-	var tlsManager tls.TlsManager = nil
+	var tlsManager tls.TlsManager
 	backends := backends.New(db, log)
 
 	// Check if server is configured
@@ -237,7 +237,9 @@ func (s *Server) Serve() error {
 	defer func() {
 		if s.mqttPublisher != nil {
 			s.log.Info("Shutting down MQTT publisher...")
-			s.mqttPublisher.Close()
+			if err := s.mqttPublisher.Close(); err != nil {
+				s.log.Warnf("Error closing MQTT publisher: %v", err)
+			}
 		}
 	}()
 
@@ -324,19 +326,6 @@ func (s *Server) proxyTestServer() {
 	if err != nil {
 		log.Fatalf("httpSrv.ListenAndServe() failed with %s", err)
 	}
-}
-
-type indexWrapper struct {
-	assets http.FileSystem
-}
-
-func (i *indexWrapper) Open(name string) (http.File, error) {
-	ret, err := i.assets.Open(name)
-	if !os.IsNotExist(err) || path.Ext(name) != "" {
-		return ret, err
-	}
-
-	return i.assets.Open("/index.html")
 }
 
 // fsFunc is short-hand for constructing a http.FileSystem

@@ -18,7 +18,8 @@ func TestConfirmSshKey(t *testing.T) {
 	require.NoError(t, err)
 	request := resp.EnrollRequest
 	cred, res := f.GenerateCredential(request)
-	f.FinishEnroll(cookie, request.Token, res)
+	_, err = f.FinishEnroll(cookie, request.Token, res)
+	require.NoError(t, err)
 
 	key := f.createSshKey(cookie, "SSH-key-1")
 	pubKey, _, _ := ed25519.GenerateKey(rand.Reader)
@@ -28,13 +29,13 @@ func TestConfirmSshKey(t *testing.T) {
 	b.WriteString(sshPubKey.Type())
 	b.WriteByte(' ')
 	e := base64.NewEncoder(base64.StdEncoding, b)
-	e.Write(sshPubKey.Marshal())
-	e.Close()
+	_, _ = e.Write(sshPubKey.Marshal())
+	_ = e.Close()
 	b.WriteByte(' ')
 	b.WriteString("SSH-key-1")
 	b.WriteByte('\n')
 
-	f.proposeSshKey(key.KeyID, "SECRET", b.String())
+	_, _ = f.proposeSshKey(key.KeyID, "SECRET", b.String())
 
 	confirmResp := f.requestConfirmSshKey(cookie, key.KeyID)
 	if confirmResp.Authenticate == nil {

@@ -9,7 +9,7 @@ import (
 const ADMIN_HOST = "localhost:10443"
 
 func (s *Server) StartTestMode() {
-	s.db.UpdateConfiguration(func(old *models.Configuration) (*models.Configuration, error) {
+	if err := s.db.UpdateConfiguration(func(old *models.Configuration) (*models.Configuration, error) {
 		if old != nil && old.AdminFqdn != ADMIN_HOST {
 			fmt.Println("Test mode is restricted to integration tests. Aborting")
 			os.Exit(1)
@@ -23,5 +23,8 @@ func (s *Server) StartTestMode() {
 		}
 
 		return s.config, nil
-	})
+	}); err != nil {
+		fmt.Printf("Failed to update configuration: %v\n", err)
+		os.Exit(1)
+	}
 }

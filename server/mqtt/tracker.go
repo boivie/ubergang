@@ -112,7 +112,7 @@ func (t *Tracker) Run() {
 			connId++
 			// Disconnect any existing connected client of this clientId.
 			if info, ok := infos[msg.clientId]; ok && info.connected != nil {
-				info.connected.conn.Close()
+				_ = info.connected.conn.Close()
 			}
 
 			infos[msg.clientId] = clientInfo{
@@ -165,7 +165,7 @@ func (t *Tracker) Run() {
 
 		case msg := <-t.disconnectChan:
 			if info, ok := infos[msg.clientId]; ok && info.connected != nil {
-				info.connected.conn.Close()
+				_ = info.connected.conn.Close()
 				// This will trigger removeConnection above.
 			}
 		case <-ticker.C:

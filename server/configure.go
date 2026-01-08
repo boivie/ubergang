@@ -59,7 +59,7 @@ func (s *Server) Configure() {
 
 	adminFqdn := "account." + siteFqdn
 
-	s.db.UpdateConfiguration(func(old *models.Configuration) (*models.Configuration, error) {
+	if err := s.db.UpdateConfiguration(func(old *models.Configuration) (*models.Configuration, error) {
 		if old == nil {
 			old = &models.Configuration{}
 		}
@@ -67,5 +67,7 @@ func (s *Server) Configure() {
 		old.SiteFqdn = siteFqdn
 		old.AdminFqdn = adminFqdn
 		return old, nil
-	})
+	}); err != nil {
+		log.Fatalf("Failed to update configuration: %v", err)
+	}
 }

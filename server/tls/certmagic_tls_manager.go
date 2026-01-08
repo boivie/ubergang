@@ -192,7 +192,7 @@ func (m *CertMagicTlsManager) HTTPHandler(fallback http.Handler) http.Handler {
 					// Serve the key authorization to the ACME server
 					w.Header().Set("Content-Type", "text/plain")
 					w.WriteHeader(http.StatusOK)
-					w.Write([]byte(challenge.KeyAuthorization))
+					_, _ = w.Write([]byte(challenge.KeyAuthorization))
 					return
 				}
 			}

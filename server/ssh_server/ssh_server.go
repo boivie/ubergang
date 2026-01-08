@@ -125,13 +125,13 @@ func New(log *log.Log, config *models.Configuration, db *db.DB, backends *backen
 func (s *SSHServer) DirectTCPIPHandler(srv *ssh.Server, conn *gossh.ServerConn, newChan gossh.NewChannel, ctx ssh.Context) {
 	portMapping := localForwardChannelData{}
 	if err := gossh.Unmarshal(newChan.ExtraData(), &portMapping); err != nil {
-		newChan.Reject(gossh.ConnectionFailed, "error parsing forward data: "+err.Error())
+		_ = newChan.Reject(gossh.ConnectionFailed, "error parsing forward data: "+err.Error())
 		return
 	}
 	s.log.Infof("DirectTCPIPHandler: %s:%d -> %s:%d", portMapping.OriginAddr, portMapping.OriginPort, portMapping.DestAddr, portMapping.DestPort)
 
 	if !ctx.Value(ContextKey).(*ugCtx).SshKeyValid {
-		newChan.Reject(gossh.ConnectionFailed, "key is expired - run ugcert to renew")
+		_ = newChan.Reject(gossh.ConnectionFailed, "key is expired - run ugcert to renew")
 		return
 	}
 
@@ -141,27 +141,27 @@ func (s *SSHServer) DirectTCPIPHandler(srv *ssh.Server, conn *gossh.ServerConn, 
 	var dialer net.Dialer
 	dconn, err := dialer.DialContext(ctx, "tcp", host)
 	if err != nil {
-		newChan.Reject(gossh.ConnectionFailed, err.Error())
+		_ = newChan.Reject(gossh.ConnectionFailed, err.Error())
 		return
 	}
 	s.log.Infof("SSH jumping to %s -> %s", portMapping.DestAddr, host)
 
 	ch, reqs, err := newChan.Accept()
 	if err != nil {
-		dconn.Close()
+		_ = dconn.Close()
 		return
 	}
 	go gossh.DiscardRequests(reqs)
 
 	go func() {
-		defer ch.Close()
-		defer dconn.Close()
-		io.Copy(ch, dconn)
+		defer func() { _ = ch.Close() }()
+		defer func() { _ = dconn.Close() }()
+		_, _ = io.Copy(ch, dconn)
 	}()
 	go func() {
-		defer ch.Close()
-		defer dconn.Close()
-		io.Copy(dconn, ch)
+		defer func() { _ = ch.Close() }()
+		defer func() { _ = dconn.Close() }()
+		_, _ = io.Copy(dconn, ch)
 	}()
 }
 
@@ -181,7 +181,7 @@ func (s *SSHServer) handleTunnel(ss ssh.Session) {
 	} else {
 		bindInfo.BindAddr = ":1902"
 	}
-	json.NewEncoder(ss).Encode(&bindInfo)
+	_ = json.NewEncoder(ss).Encode(&bindInfo)
 }
 
 func (s *SSHServer) RemoteForwardHandler(ctx ssh.Context, srv *ssh.Server, req *gossh.Request) (bool, []byte) {
@@ -237,30 +237,30 @@ func (s *SSHServer) ServeSSH(keyPem []byte, port int) {
 				return
 			}
 
-			io.WriteString(ss, "       __                                       \n")
-			io.WriteString(ss, ".--.--|  |--.-----.----.-----.---.-.-----.-----.\n")
-			io.WriteString(ss, "|  |  |  _  |  -__|   _|  _  |  _  |     |  _  |\n")
-			io.WriteString(ss, "|_____|_____|_____|__| |___  |___._|__|__|___  |\n")
-			io.WriteString(ss, "                       |_____|           |_____|\n")
-			io.WriteString(ss, "                                                \n")
+			_, _ = io.WriteString(ss, "       __                                       \n")
+			_, _ = io.WriteString(ss, ".--.--|  |--.-----.----.-----.---.-.-----.-----.\n")
+			_, _ = io.WriteString(ss, "|  |  |  _  |  -__|   _|  _  |  _  |     |  _  |\n")
+			_, _ = io.WriteString(ss, "|_____|_____|_____|__| |___  |___._|__|__|___  |\n")
+			_, _ = io.WriteString(ss, "                       |_____|           |_____|\n")
+			_, _ = io.WriteString(ss, "                                                \n")
 
 			ctx := ss.Context().Value(ContextKey).(*ugCtx)
 			backends := ctx.addedBackends
 
 			if !ctx.SshKeyValid {
-				io.WriteString(ss, "\nYou will need to run \"ugcert\" to revalidate your SSH key.\n\n")
-				ss.Close()
+				_, _ = io.WriteString(ss, "\nYou will need to run \"ugcert\" to revalidate your SSH key.\n\n")
+				_ = ss.Close()
 				return
 			} else if len(backends) == 0 {
-				io.WriteString(ss, "\nYou have successfully connected, but there were no valid port forwardings or SSH hosts to jump to. Good bye!\n\n")
-				ss.Close()
+				_, _ = io.WriteString(ss, "\nYou have successfully connected, but there were no valid port forwardings or SSH hosts to jump to. Good bye!\n\n")
+				_ = ss.Close()
 				return
 			}
 
 			for _, backend := range ctx.addedBackends {
-				io.WriteString(ss, "Forwarding https://"+backend.Host()+" -> your computer\n")
+				_, _ = io.WriteString(ss, "Forwarding https://"+backend.Host()+" -> your computer\n")
 			}
-			io.WriteString(ss, "\n")
+			_, _ = io.WriteString(ss, "\n")
 
 			<-ss.Context().Done()
 			for _, backend := range ctx.addedBackends {

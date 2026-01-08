@@ -100,7 +100,9 @@ func (s *MqttProxy) listen(port int) {
 }
 
 func (s *MqttProxy) handleClientConnection(connectionType ConnectionType, clientConn net.Conn) {
-	defer clientConn.Close()
+	defer func() {
+		_ = clientConn.Close()
+	}()
 	s.log.Infof("mqtt: Accepted %s connection from %s", connectionType, clientConn.RemoteAddr())
 
 	connect, err := handleClientConnect(clientConn)
@@ -115,7 +117,7 @@ func (s *MqttProxy) handleClientConnection(connectionType ConnectionType, client
 	if err != nil {
 		s.log.Warnf("mqtt: Failed to authorize connection (%s/%s): %v from %s", connect.Username, password, err, clientConn.RemoteAddr())
 		connectionErrorMetric.WithLabelValues("failed_auth").Inc()
-		connectionRefused().Write(clientConn)
+		_ = connectionRefused().Write(clientConn)
 		return
 	}
 
@@ -124,10 +126,12 @@ func (s *MqttProxy) handleClientConnection(connectionType ConnectionType, client
 	if err != nil {
 		s.log.Warnf("mqtt: Failed to connect to broker: %v", err)
 		connectionErrorMetric.WithLabelValues("connect_broker").Inc()
-		serverUnavailable().Write(clientConn)
+		_ = serverUnavailable().Write(clientConn)
 		return
 	}
-	defer brokerConn.Close()
+	defer func() {
+		_ = brokerConn.Close()
+	}()
 
 	connId := s.tracker.AddConnection(clientConfig.Id, connectionType, clientConn, clientConn.RemoteAddr().String())
 	defer s.tracker.RemoveConnection(clientConfig.Id, connId)

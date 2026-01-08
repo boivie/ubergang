@@ -34,5 +34,5 @@ func (wa *WA) PasskeyImageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "image/svg+xml")
-	w.Write(decodedImage)
+	_, _ = w.Write(decodedImage)
 }
