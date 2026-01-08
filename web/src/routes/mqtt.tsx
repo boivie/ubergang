@@ -17,7 +17,13 @@ import {
   Modal,
   ModalOverlay,
 } from "react-aria-components";
-import { Form, Link, redirect, useLoaderData } from "react-router";
+import {
+  ActionFunctionArgs,
+  Form,
+  Link,
+  redirect,
+  useLoaderData,
+} from "react-router";
 import { ApiService, useApiService } from "../api/api_client";
 import {
   ApiListMqttClientsResponse,
@@ -34,7 +40,10 @@ export async function MqttListLoader(api: ApiService) {
   return { profiles, clients };
 }
 
-export async function MqttListAction() {
+export async function MqttListAction(
+  _api: ApiService,
+  _args: ActionFunctionArgs,
+) {
   return redirect("/mqtt");
 }
 
