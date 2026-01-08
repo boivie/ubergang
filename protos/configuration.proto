@@ -1,0 +1,15 @@
+syntax = "proto3";
+package models;
+
+
+option go_package = "./server/models";
+
+// Ref: config -> Configuration (singleton)
+message Configuration {
+  reserved 5;
+
+  string email = 1;
+  string site_fqdn = 2;
+  string admin_fqdn = 3;
+  bool is_in_test_mode = 4;
+}

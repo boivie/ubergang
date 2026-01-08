@@ -1,0 +1,7 @@
+bin/
+.DS_Store
+pkg/
+config/
+ubergang
+.claude
+*.db

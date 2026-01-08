@@ -1,0 +1,46 @@
+syntax = "proto3";
+package models;
+
+option go_package = "./server/models";
+
+import "google/protobuf/timestamp.proto";
+
+// What the server will persist when requesting the client to authenticate.
+// The state is identified by an UUIDv7, and the timestamp part of it allows it
+// to be ordered and expired by only observing the key.
+// Ref: "auth-state:$id"
+message AuthenticationState {
+  string user_verification = 1;
+  string user_id = 2;
+  string challenge = 3;
+  repeated bytes allowed_credentials = 4;
+  google.protobuf.Timestamp expires_at = 5;
+
+  oneof type  {
+    AuthenticationStateEnroll enroll = 10;
+    AthenticationStateSignIn sign_in = 11;
+    AthenticationStateConfirmSshKey confirm_ssh_key = 12;
+    AuthenticationStateConfirmSignin confirm_signin = 14;
+  }
+}
+
+// User is enrolling a new credential.
+message AuthenticationStateEnroll {
+  string session_id = 1;
+}
+
+// User is confirming an enroll request
+message AuthenticationStateConfirmSignin {
+  string signin_request_id = 1;
+  string session_id = 2;
+}
+
+// The user has asked to sign in.
+message AthenticationStateSignIn {
+
+}
+
+// The user has asked to confirm a SSH key.
+message AthenticationStateConfirmSshKey {
+  string key_id = 1;
+}

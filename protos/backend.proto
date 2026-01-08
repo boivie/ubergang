@@ -1,0 +1,35 @@
+syntax = "proto3";
+package models;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "./server/models";
+
+message Header {
+  string name = 1;
+  string value = 2;
+}
+
+enum AccessLevel {
+  // Required first variant in a proto enum. Will default to NORMAL.
+  ACCESS_LEVEL_UNSPECIFIED = 0;
+  // Requires to be logged in, and backend included in user's access.
+  NORMAL = 1;
+  // No authentication required - public endpoint.
+  PUBLIC = 2;
+}
+
+message ScriptHandler {
+  string js_script = 1;
+}
+
+// Ref: "be:$fqdn" -> Backend
+message Backend {
+  string fqdn = 1;
+  string upstream_url = 2;
+  repeated Header headers = 3;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp updated_at = 5;
+  AccessLevel access_level = 6;
+  ScriptHandler script_handler = 7;
+}

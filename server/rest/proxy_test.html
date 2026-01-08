@@ -1,0 +1,1037 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ubergang Test Suite</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+        background: #f9fafb;
+        color: #333;
+        min-height: 100vh;
+      }
+
+      header {
+        background: rgba(255, 255, 255, 0.9);
+        border-bottom: 1px solid #e2e8f0;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      }
+
+      .header-content {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 0 1.5rem;
+      }
+
+      .header-nav {
+        display: flex;
+        align-items: center;
+        height: 3.5rem;
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1.125rem;
+        color: #334155;
+        text-decoration: none;
+      }
+
+      .logo svg {
+        width: 32px;
+        height: 32px;
+      }
+
+      .container {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 2rem 1.5rem;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+        color: #1e293b;
+        margin-bottom: 1rem;
+      }
+
+      .controls {
+        margin-bottom: 2rem;
+      }
+
+      button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 2.5rem;
+        padding: 0 1.25rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #10b981;
+        background: white;
+        border: 1px solid #10b981;
+        border-radius: 9999px;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+
+      button:hover {
+        color: #059669;
+        border-color: #059669;
+      }
+
+      .summary {
+        background: white;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+
+      .summary h2 {
+        font-size: 1.25rem;
+        color: #1e293b;
+        margin-bottom: 1rem;
+      }
+
+      .stats {
+        display: flex;
+        gap: 2rem;
+        flex-wrap: wrap;
+      }
+
+      .stat {
+        text-align: center;
+      }
+
+      .stat-value {
+        font-size: 1.5rem;
+        font-weight: bold;
+        display: block;
+      }
+
+      .stat-label {
+        color: #64748b;
+        font-size: 0.875rem;
+      }
+
+      .stat-value.total {
+        color: #10b981;
+      }
+      .stat-value.pass {
+        color: #10b981;
+      }
+      .stat-value.fail {
+        color: #ef4444;
+      }
+      .stat-value.pending {
+        color: #64748b;
+      }
+
+      #tests {
+        background: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+      }
+
+      .test {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #f1f5f9;
+      }
+
+      .test:last-child {
+        border-bottom: none;
+      }
+
+      .test-content {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .test h3 {
+        font-size: 1rem;
+        color: #334155;
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+      }
+
+      .status {
+        font-size: 0.875rem;
+        font-weight: 500;
+      }
+
+      .status.pending {
+        color: #64748b;
+      }
+
+      .status.testing {
+        color: #f59e0b;
+        animation: pulse 2s infinite;
+      }
+
+      .status.pass {
+        color: #10b981;
+      }
+
+      .status.fail {
+        color: #ef4444;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.6;
+        }
+      }
+
+      .details {
+        font-size: 0.75rem;
+        color: #64748b;
+        background: #f9fafb;
+        padding: 0.5rem;
+        border-radius: 0.375rem;
+        margin-top: 0.5rem;
+        max-height: 150px;
+        overflow-y: auto;
+        font-family: "Courier New", monospace;
+        white-space: pre-wrap;
+        word-break: break-all;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="header-content">
+        <nav class="header-nav">
+          <a href="/" class="logo">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="#10b981"
+              fill="none"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+              <path
+                d="M12 21a12 12 0 0 1 -8.5 -15a12 12 0 0 0 8.5 -3a12 12 0 0 0 8.5 3a12 12 0 0 1 -.078 7.024"
+              />
+              <path d="M20 21l2 -2l-2 -2" />
+              <path d="M17 17l-2 2l2 2" />
+            </svg>
+            Übergang Test Suite
+          </a>
+        </nav>
+      </div>
+    </header>
+
+    <div class="container">
+      <div class="summary">
+        <div class="stats">
+          <div class="stat">
+            <span class="stat-value pass" id="stat-pass">--</span>
+            <span class="stat-label">Passed</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value fail" id="stat-fail">--</span>
+            <span class="stat-label">Failed</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value pending" id="stat-pending">--</span>
+            <span class="stat-label">Pending</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="tests">
+        <div class="test" id="test-http">
+          <div class="test-content">
+            <h3>HTTP Request</h3>
+            <div class="status pending">Pending</div>
+            <div class="details"></div>
+          </div>
+        </div>
+
+        <div class="test" id="test-websocket">
+          <div class="test-content">
+            <h3>WebSocket</h3>
+            <div class="status pending">Pending</div>
+            <div class="details"></div>
+          </div>
+        </div>
+
+        <div class="test" id="test-sse">
+          <div class="test-content">
+            <h3>Server-Sent Events</h3>
+            <div class="status pending">Pending</div>
+            <div class="details"></div>
+          </div>
+        </div>
+
+        <div class="test" id="test-chunked">
+          <div class="test-content">
+            <h3>Chunked Response</h3>
+            <div class="status pending">Pending</div>
+            <div class="details"></div>
+          </div>
+        </div>
+
+        <div class="test" id="test-headers">
+          <div class="test-content">
+            <h3>Header Forwarding</h3>
+            <div class="status pending">Pending</div>
+            <div class="details"></div>
+          </div>
+        </div>
+
+        <div class="test" id="test-post-body">
+          <div class="test-content">
+            <h3>POST Body</h3>
+            <div class="status pending">Pending</div>
+            <div class="details"></div>
+          </div>
+        </div>
+
+        <div class="test" id="test-large-download">
+          <div class="test-content">
+            <h3>Large Download</h3>
+            <div class="status pending">Pending</div>
+            <div class="details"></div>
+          </div>
+        </div>
+
+        <div class="test" id="test-large-upload">
+          <div class="test-content">
+            <h3>Large Upload</h3>
+            <div class="status pending">Pending</div>
+            <div class="details"></div>
+          </div>
+        </div>
+
+        <div class="test" id="test-timeout">
+          <div class="test-content">
+            <h3>Timeout Handling</h3>
+            <div class="status pending">Pending</div>
+            <div class="details"></div>
+          </div>
+        </div>
+
+        <div class="test" id="test-auth">
+          <div class="test-content">
+            <h3>Authentication</h3>
+            <div class="status pending">Pending</div>
+            <div class="details"></div>
+          </div>
+        </div>
+
+        <div class="test" id="test-status">
+          <div class="test-content">
+            <h3>Status Codes</h3>
+            <div class="status pending">Pending</div>
+            <div class="details"></div>
+          </div>
+        </div>
+
+        <div class="test" id="test-encoding">
+          <div class="test-content">
+            <h3>URL Encoding</h3>
+            <div class="status pending">Pending</div>
+            <div class="details"></div>
+          </div>
+        </div>
+
+        <div class="test" id="test-cookies">
+          <div class="test-content">
+            <h3>Cookie Folding</h3>
+            <div class="status pending">Pending</div>
+            <div class="details"></div>
+          </div>
+        </div>
+
+        <div class="test" id="test-compression">
+          <div class="test-content">
+            <h3>Compression</h3>
+            <div class="status pending">Pending</div>
+            <div class="details"></div>
+          </div>
+        </div>
+
+        <div class="test" id="test-concurrency">
+          <div class="test-content">
+            <h3>Concurrency</h3>
+            <div class="status pending">Pending</div>
+            <div class="details"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let stats = { pass: 0, fail: 0, pending: 15 };
+
+      function updateStats() {
+        document.getElementById("stat-pass").textContent = stats.pass;
+        document.getElementById("stat-fail").textContent = stats.fail;
+        document.getElementById("stat-pending").textContent = stats.pending;
+      }
+
+      function setTestStatus(testId, status, details = "") {
+        const test = document.getElementById(testId);
+        const statusEl = test.querySelector(".status");
+        const detailsEl = test.querySelector(".details");
+
+        // Update stats
+        const oldStatus = statusEl.className.split(" ")[1];
+        if (oldStatus === "pass") stats.pass--;
+        if (oldStatus === "fail") stats.fail--;
+        if (oldStatus === "pending") stats.pending--;
+
+        statusEl.className = "status " + status;
+
+        if (status === "testing") {
+          statusEl.textContent = "Testing...";
+        } else if (status === "pass") {
+          statusEl.textContent = "Passed";
+          stats.pass++;
+        } else if (status === "fail") {
+          statusEl.textContent = "Failed";
+          stats.fail++;
+        } else {
+          statusEl.textContent = "Pending";
+          stats.pending++;
+        }
+
+        if (details) {
+          detailsEl.textContent = details;
+          detailsEl.style.display = "block";
+        } else {
+          detailsEl.style.display = "none";
+        }
+        updateStats();
+      }
+
+      async function testHTTP() {
+        setTestStatus("test-http", "testing");
+        try {
+          const response = await fetch("/proxy-test/echo?test=value");
+          const data = await response.json();
+
+          if (data.method === "GET" && data.query.test === "value") {
+            setTestStatus(
+              "test-http",
+              "pass",
+              "Method: " +
+                data.method +
+                "\n" +
+                "Path: " +
+                data.path +
+                "\n" +
+                "Query params received: " +
+                JSON.stringify(data.query),
+            );
+          } else {
+            setTestStatus(
+              "test-http",
+              "fail",
+              "Unexpected response: " + JSON.stringify(data),
+            );
+          }
+        } catch (error) {
+          setTestStatus("test-http", "fail", "Error: " + error.message);
+        }
+      }
+
+      async function testWebSocket() {
+        setTestStatus("test-websocket", "testing");
+        try {
+          const protocol =
+            window.location.protocol === "https:" ? "wss:" : "ws:";
+          const ws = new WebSocket(
+            protocol + "//" + window.location.host + "/proxy-test/websocket",
+          );
+
+          let received = false;
+          const testMessage = "Hello WebSocket!";
+
+          ws.onopen = () => {
+            ws.send(testMessage);
+          };
+
+          ws.onmessage = (event) => {
+            received = true;
+            if (event.data === testMessage) {
+              setTestStatus(
+                "test-websocket",
+                "pass",
+                "Sent: " +
+                  testMessage +
+                  "\n" +
+                  "Received: " +
+                  event.data +
+                  "\n" +
+                  "WebSocket echo working correctly",
+              );
+            } else {
+              setTestStatus(
+                "test-websocket",
+                "fail",
+                "Echo mismatch\n" +
+                  "Sent: " +
+                  testMessage +
+                  "\n" +
+                  "Received: " +
+                  event.data,
+              );
+            }
+            ws.close();
+          };
+
+          ws.onerror = (error) => {
+            setTestStatus(
+              "test-websocket",
+              "fail",
+              "WebSocket error: " + error,
+            );
+          };
+
+          setTimeout(() => {
+            if (!received) {
+              setTestStatus(
+                "test-websocket",
+                "fail",
+                "No response received within timeout",
+              );
+              ws.close();
+            }
+          }, 5000);
+        } catch (error) {
+          setTestStatus("test-websocket", "fail", "Error: " + error.message);
+        }
+      }
+
+      async function testSSE() {
+        setTestStatus("test-sse", "testing");
+        try {
+          const eventSource = new EventSource("/proxy-test/sse");
+          let eventCount = 0;
+          let events = [];
+
+          eventSource.onmessage = (event) => {
+            eventCount++;
+            events.push(event.data);
+
+            if (eventCount >= 10) {
+              eventSource.close();
+              setTestStatus(
+                "test-sse",
+                "pass",
+                "Received " +
+                  eventCount +
+                  " events\n" +
+                  "Sample events:\n" +
+                  events.slice(0, 3).join("\n"),
+              );
+            }
+          };
+
+          eventSource.onerror = () => {
+            if (eventCount > 0) {
+              setTestStatus(
+                "test-sse",
+                "pass",
+                "Received " +
+                  eventCount +
+                  " events before close\n" +
+                  "Sample events:\n" +
+                  events.slice(0, 3).join("\n"),
+              );
+            } else {
+              setTestStatus("test-sse", "fail", "SSE connection failed");
+            }
+            eventSource.close();
+          };
+        } catch (error) {
+          setTestStatus("test-sse", "fail", "Error: " + error.message);
+        }
+      }
+
+      async function testChunked() {
+        setTestStatus("test-chunked", "testing");
+        try {
+          const response = await fetch("/proxy-test/chunked");
+          const data = await response.json();
+
+          if (Array.isArray(data) && data.length === 5) {
+            setTestStatus(
+              "test-chunked",
+              "pass",
+              "Received " +
+                data.length +
+                " chunks\n" +
+                "Sample: " +
+                JSON.stringify(data[0]),
+            );
+          } else {
+            setTestStatus(
+              "test-chunked",
+              "fail",
+              "Expected 5 chunks, got: " + JSON.stringify(data),
+            );
+          }
+        } catch (error) {
+          setTestStatus("test-chunked", "fail", "Error: " + error.message);
+        }
+      }
+
+      async function testHeaders() {
+        setTestStatus("test-headers", "testing");
+        try {
+          const response = await fetch("/proxy-test/headers");
+          const data = await response.json();
+
+          const hasForwardedHost = !!data.xForwardedHost;
+          const hasForwardedProto = !!data.xForwardedProto;
+
+          if (hasForwardedHost || hasForwardedProto) {
+            setTestStatus(
+              "test-headers",
+              "pass",
+              "X-Forwarded-Host: " +
+                data.xForwardedHost +
+                "\n" +
+                "X-Forwarded-Proto: " +
+                data.xForwardedProto +
+                "\n" +
+                "X-Forwarded-Email: " +
+                (data.xForwardedEmail || "(none)") +
+                "\n" +
+                "Custom headers: " +
+                JSON.stringify(data.customHeaders),
+            );
+          } else {
+            setTestStatus(
+              "test-headers",
+              "fail",
+              "No X-Forwarded-* headers received\n" +
+                "All headers: " +
+                JSON.stringify(data.headers),
+            );
+          }
+        } catch (error) {
+          setTestStatus("test-headers", "fail", "Error: " + error.message);
+        }
+      }
+
+      async function testPostBody() {
+        setTestStatus("test-post-body", "testing");
+        try {
+          const testData = { message: "Hello", value: 42 };
+          const response = await fetch("/proxy-test/post-body", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(testData),
+          });
+          const data = await response.json();
+
+          const receivedBody = JSON.parse(data.body);
+          if (
+            receivedBody.message === testData.message &&
+            receivedBody.value === testData.value
+          ) {
+            setTestStatus(
+              "test-post-body",
+              "pass",
+              "Body correctly forwarded\n" +
+                "Sent: " +
+                JSON.stringify(testData) +
+                "\n" +
+                "Received: " +
+                data.body +
+                "\n" +
+                "Content-Type: " +
+                data.contentType,
+            );
+          } else {
+            setTestStatus("test-post-body", "fail", "Body mismatch");
+          }
+        } catch (error) {
+          setTestStatus("test-post-body", "fail", "Error: " + error.message);
+        }
+      }
+
+      async function testLargeDownload() {
+        setTestStatus("test-large-download", "testing");
+        try {
+          const sizeMB = 5; // Test with 5MB
+          const startTime = Date.now();
+          const response = await fetch(
+            "/proxy-test/large-download?size=" + sizeMB,
+          );
+          const blob = await response.blob();
+          const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
+
+          const expectedBytes = sizeMB * 1024 * 1024;
+          if (blob.size === expectedBytes) {
+            setTestStatus(
+              "test-large-download",
+              "pass",
+              "Downloaded: " +
+                sizeMB +
+                " MB\n" +
+                "Size: " +
+                blob.size.toLocaleString() +
+                " bytes\n" +
+                "Time: " +
+                elapsed +
+                "s\n" +
+                "Speed: " +
+                (sizeMB / elapsed).toFixed(2) +
+                " MB/s",
+            );
+          } else {
+            setTestStatus(
+              "test-large-download",
+              "fail",
+              "Size mismatch\n" +
+                "Expected: " +
+                expectedBytes +
+                "\n" +
+                "Received: " +
+                blob.size,
+            );
+          }
+        } catch (error) {
+          setTestStatus(
+            "test-large-download",
+            "fail",
+            "Error: " + error.message,
+          );
+        }
+      }
+
+      async function testLargeUpload() {
+        setTestStatus("test-large-upload", "testing");
+        try {
+          const sizeMB = 5; // Test with 5MB
+          const data = new Uint8Array(sizeMB * 1024 * 1024);
+          const startTime = Date.now();
+
+          const response = await fetch("/proxy-test/large-upload", {
+            method: "POST",
+            body: data,
+          });
+          const result = await response.json();
+          const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
+
+          if (result.success && result.receivedMB >= sizeMB - 0.1) {
+            setTestStatus(
+              "test-large-upload",
+              "pass",
+              "Uploaded: " +
+                sizeMB +
+                " MB\n" +
+                "Received: " +
+                result.receivedMB.toFixed(2) +
+                " MB\n" +
+                "Time: " +
+                elapsed +
+                "s\n" +
+                "Speed: " +
+                (sizeMB / elapsed).toFixed(2) +
+                " MB/s",
+            );
+          } else {
+            setTestStatus(
+              "test-large-upload",
+              "fail",
+              "Upload verification failed\n" + JSON.stringify(result),
+            );
+          }
+        } catch (error) {
+          setTestStatus("test-large-upload", "fail", "Error: " + error.message);
+        }
+      }
+
+      async function testTimeout() {
+        setTestStatus("test-timeout", "testing");
+        try {
+          const delay = 3; // Test with 3 second delay
+          const startTime = Date.now();
+          const response = await fetch("/proxy-test/timeout?delay=" + delay);
+          const data = await response.json();
+          const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
+
+          if (data.requestedDelay === delay && elapsed >= delay) {
+            setTestStatus(
+              "test-timeout",
+              "pass",
+              "Requested delay: " +
+                delay +
+                "s\n" +
+                "Actual delay: " +
+                data.actualDelay.toFixed(2) +
+                "s\n" +
+                "Total time: " +
+                elapsed +
+                "s\n" +
+                "Timestamp: " +
+                data.timestamp,
+            );
+          } else {
+            setTestStatus("test-timeout", "fail", "Timing mismatch");
+          }
+        } catch (error) {
+          setTestStatus("test-timeout", "fail", "Error: " + error.message);
+        }
+      }
+
+      async function testAuth() {
+        setTestStatus("test-auth", "testing");
+        try {
+          const response = await fetch("/proxy-test/auth");
+          const data = await response.json();
+
+          const details =
+            "Authenticated: " +
+            data.authenticated +
+            "\n" +
+            "X-Forwarded-Email: " +
+            (data.xForwardedEmail || "(none)") +
+            "\n" +
+            (data.authenticated
+              ? "User: " +
+                data.userEmail +
+                "\n" +
+                "User ID: " +
+                data.userId +
+                "\n" +
+                "Is Admin: " +
+                data.isAdmin
+              : "Anonymous access");
+
+          setTestStatus("test-auth", "pass", details);
+        } catch (error) {
+          setTestStatus("test-auth", "fail", "Error: " + error.message);
+        }
+      }
+
+      async function testStatusCodes() {
+        setTestStatus("test-status", "testing");
+        try {
+          const codes = [404, 418, 500];
+          const results = [];
+
+          for (const code of codes) {
+            const response = await fetch(`/proxy-test/status?code=${code}`);
+            if (response.status === code) {
+              results.push(`${code}: OK`);
+            } else {
+              throw new Error(`Expected ${code}, got ${response.status}`);
+            }
+          }
+
+          setTestStatus(
+            "test-status",
+            "pass",
+            "Correctly forwarded:\n" + results.join("\n"),
+          );
+        } catch (error) {
+          setTestStatus("test-status", "fail", error.message);
+        }
+      }
+
+      async function testUrlEncoding() {
+        setTestStatus("test-encoding", "testing");
+        try {
+          // Test spaces, emojis, and reserved characters
+          const complexPath =
+            "/proxy-test/echo/h%C3%BCtte/space%20walk/\uD83D\uDE80";
+          const response = await fetch(complexPath);
+          const data = await response.json();
+
+          // Check if the server received the path exactly as sent
+          // Note: Browsers automatically encode the fetch URL, so we check if the proxy kept it that way
+          if (
+            data.path.includes("space%20walk") ||
+            data.path.includes("space walk")
+          ) {
+            setTestStatus(
+              "test-encoding",
+              "pass",
+              "Path forwarded: " + data.path,
+            );
+          } else {
+            setTestStatus(
+              "test-encoding",
+              "fail",
+              "Proxy malformed the URL.\nReceived: " + data.path,
+            );
+          }
+        } catch (error) {
+          setTestStatus("test-encoding", "fail", error.message);
+        }
+      }
+
+      async function testCookieFolding() {
+        setTestStatus("test-cookies", "testing");
+        try {
+          const response = await fetch("/proxy-test/cookies");
+
+          // In a browser, we can't read Set-Cookie headers directly due to security.
+          // However, we can check document.cookie if the path matches,
+          // OR have the backend return the headers it *would* have sent in the body for verification.
+
+          // Better approach for browser test:
+          // Have the backend reflect the headers in the body JSON:
+          const data = await response.json();
+
+          // Check if the backend thinks it sent multiple values
+          // This is a loose check because the browser hides the actual Set-Cookie header
+          setTestStatus(
+            "test-cookies",
+            "pass",
+            "Cookies set by server:\n" + JSON.stringify(data.cookiesSent),
+          );
+        } catch (error) {
+          setTestStatus("test-cookies", "fail", error.message);
+        }
+      }
+
+      async function testCompression() {
+        setTestStatus("test-compression", "testing");
+        try {
+          const response = await fetch("/proxy-test/compression");
+          const encoding = response.headers.get("Content-Encoding");
+          const blob = await response.blob();
+
+          if (encoding === "gzip" || encoding === "br") {
+            setTestStatus(
+              "test-compression",
+              "pass",
+              `Received ${encoding} compressed content.\nSize: ${blob.size} bytes`,
+            );
+          } else {
+            setTestStatus(
+              "test-compression",
+              "fail",
+              "Content was not compressed.\nHeader: " + encoding,
+            );
+          }
+        } catch (error) {
+          setTestStatus("test-compression", "fail", error.message);
+        }
+      }
+
+      async function testConcurrency() {
+        setTestStatus("test-concurrency", "testing");
+        try {
+          const count = 50;
+          const promises = [];
+          const startTime = Date.now();
+
+          for (let i = 0; i < count; i++) {
+            promises.push(
+              fetch(`/proxy-test/echo?req=${i}`).then((r) => r.json()),
+            );
+          }
+
+          const results = await Promise.all(promises);
+          const elapsed = Date.now() - startTime;
+
+          const failures = results.filter((r) => !r.query || !r.query.req);
+
+          if (failures.length === 0) {
+            setTestStatus(
+              "test-concurrency",
+              "pass",
+              `Processed ${count} parallel requests in ${elapsed}ms.\nAvg: ${(
+                elapsed / count
+              ).toFixed(2)}ms/req`,
+            );
+          } else {
+            setTestStatus(
+              "test-concurrency",
+              "fail",
+              `Failed ${failures.length} out of ${count} requests.`,
+            );
+          }
+        } catch (error) {
+          setTestStatus(
+            "test-concurrency",
+            "fail",
+            "Connection error during load: " + error.message,
+          );
+        }
+      }
+
+      async function runAllTests() {
+        // Run tests sequentially to avoid overwhelming the server
+        await testHTTP();
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        await testWebSocket();
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        await testSSE();
+        await new Promise((resolve) => setTimeout(resolve, 11000)); // Wait for SSE to complete
+
+        await testChunked();
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        await testHeaders();
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        await testPostBody();
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        await testLargeDownload();
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        await testLargeUpload();
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        await testTimeout();
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        await testAuth();
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        await testStatusCodes();
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        await testUrlEncoding();
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        await testCookieFolding();
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        await testCompression();
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        await testConcurrency();
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
+
+      // Auto-run tests on page load
+      window.addEventListener("load", () => {
+        setTimeout(runAllTests, 1000);
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,28 @@
+syntax = "proto3";
+package models;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "./server/models";
+
+message SigninRequest {
+  string id = 1;
+  string pin = 2;
+  google.protobuf.Timestamp expires_at = 3;
+  bool confirmed = 4;
+  string user_agent = 5;
+  string ip = 6;
+}
+
+// Ref: user:$id -> User
+// Ref: email:$email -> $id
+message User {
+  string id = 1;
+  string email = 2;
+  string display_name = 3;
+  repeated string allowed_hosts = 4;
+  bool is_admin = 6;
+
+  // Signin requests, max 10 per 10 minutes.
+  repeated SigninRequest signin_requests = 5;
+}

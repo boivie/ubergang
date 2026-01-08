@@ -1,0 +1,11 @@
+syntax = "proto3";
+package models;
+
+option go_package = "./server/models";
+
+// Ref: mqtt-profile:$id -> MqttProfile
+message MqttProfile {
+  string id = 1;
+  repeated string allow_publish = 2;
+  repeated string allow_subscribe = 3;
+}

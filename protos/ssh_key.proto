@@ -1,0 +1,23 @@
+syntax = "proto3";
+package models;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "./server/models";
+
+// Represents a registered public key.
+// Ref: "ssh-key:$id" -> SshKey
+// Ref: "user:$user_id:ssh-key:$id" -> []
+// Ref: "ssh-fp:$fingerprint@b64" -> $id
+message SshKey {
+  string id = 1;
+  string user_id = 2;
+  string name = 3;
+  string hashed_secret = 4;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp confirmed_at = 6;
+  google.protobuf.Timestamp expires_at = 7;
+  string public_key = 8;
+  // The SHA256 fingerprint of the `public_key`.
+  bytes sha256_fingerprint = 9;
+}

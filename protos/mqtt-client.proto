@@ -1,0 +1,12 @@
+syntax = "proto3";
+package models;
+
+option go_package = "./server/models";
+
+// Ref: mqtt-client:$id -> MqttClient
+message MqttClient {
+  string id = 1;
+  string profile_id = 2;
+  string password = 3;
+  map<string, string> values = 4;
+}

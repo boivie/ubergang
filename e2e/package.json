@@ -1,0 +1,21 @@
+{
+  "name": "ubergang-e2e",
+  "version": "1.0.0",
+  "description": "End-to-end tests for Ubergang authentication proxy",
+  "scripts": {
+    "test": "playwright test",
+    "test:frontend": "playwright test --project=frontend-mocked",
+    "test:integration": "playwright test --project=integration-real-backend",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "test:debug": "playwright test --debug",
+    "codegen": "playwright codegen",
+    "report": "playwright show-report",
+    "install-browsers": "playwright install"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.57.0",
+    "@types/node": "^20.19.27",
+    "typescript": "^5.9.3"
+  }
+}

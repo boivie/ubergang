@@ -1,0 +1,17 @@
+syntax = "proto3";
+package models;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "./server/models";
+
+// Ref: "sess:$id" -> Session
+// Ref: "user:$user_id:sess:$id" -> []
+message Session {
+  string id = 1;
+  string user_id = 2;
+  string secret = 3;
+  string user_agent = 4;
+  string remote_addr = 5;
+  google.protobuf.Timestamp created_at = 6;
+}
