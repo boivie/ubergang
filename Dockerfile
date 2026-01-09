@@ -30,7 +30,7 @@ RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
     go build -ldflags="-w -s -X main.version=${BUILD_VERSION}" -o /ubergang .
 
 # --- Stage 3: Final Image ---
-FROM alpine:3.21 AS final
+FROM alpine:3.23 AS final
 
 LABEL maintainer="boivie"
 
