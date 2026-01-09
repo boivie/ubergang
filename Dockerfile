@@ -1,5 +1,5 @@
 # --- Stage 1: Frontend Build ---
-FROM --platform=$BUILDPLATFORM node:24-slim AS nodebuilder
+FROM --platform=$BUILDPLATFORM node:25-slim AS nodebuilder
 WORKDIR /src/web
 
 # Cache dependencies separately
