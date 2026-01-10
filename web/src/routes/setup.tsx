@@ -70,7 +70,7 @@ export default function SetupComponent() {
           message: "Configuration failed. Please try again.",
         });
       }
-    } catch (error) {
+    } catch (_error) {
       setState({
         type: "error",
         message:

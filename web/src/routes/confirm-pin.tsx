@@ -63,7 +63,7 @@ export default function ConfirmPin() {
                 message: "Authentication failed. Please try again.",
               });
             }
-          } catch (error) {
+          } catch (_error) {
             setState({
               type: "error",
               message: "Failed to confirm sign-in. Please try again.",
@@ -85,7 +85,7 @@ export default function ConfirmPin() {
           });
         },
       });
-    } catch (error) {
+    } catch (_error) {
       setState({
         type: "error",
         message: "Unable to start authentication. Please try again.",
