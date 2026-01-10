@@ -7,7 +7,7 @@ import {
 } from "react-router";
 import { ApiService } from "../api/api_client";
 import { ApiBackend } from "../api/api_types";
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { IconChevronDown, IconPlus, IconX } from "@tabler/icons-react";
 import { StyledComboBox, StyledItem } from "../components/StyledComboBox";
 
@@ -74,11 +74,11 @@ export default function BackendsEdit() {
   const [headers, setHeaders] = useState<EditableHeader[]>(() =>
     backend.headers.map((h, i) => ({ id: i, ...h })),
   );
-  const [headersStr, setHeadersStr] = useState("");
 
-  useEffect(() => {
-    setHeadersStr(headers.map((h) => `${h.name}=${h.value}`).join("\n"));
-  }, [headers]);
+  const headersStr = useMemo(
+    () => headers.map((h) => `${h.name}=${h.value}`).join("\n"),
+    [headers],
+  );
 
   const handleHeaderChange = (
     id: number,
