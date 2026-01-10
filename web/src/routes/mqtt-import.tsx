@@ -63,7 +63,7 @@ export default function MqttImportComponent() {
 
       {actionData?.error && (
         <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md flex items-start gap-3">
-          <IconAlertCircle className="text-red-600 flex-shrink-0" size={20} />
+          <IconAlertCircle className="text-red-600 shrink-0" size={20} />
           <div className="flex-1">
             <h3 className="text-sm font-medium text-red-800">Import Failed</h3>
             <p className="mt-1 text-sm text-red-700">{actionData.error}</p>
@@ -146,13 +146,13 @@ export default function MqttImportComponent() {
           <button
             type="submit"
             disabled={!selectedFile}
-            className="flex justify-center flex-1 px-4 py-2 text-sm font-medium text-white border border-transparent rounded-md shadow-sm bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:bg-slate-300 disabled:cursor-not-allowed"
+            className="flex justify-center flex-1 px-4 py-2 text-sm font-medium text-white border border-transparent rounded-md shadow-xs bg-emerald-600 hover:bg-emerald-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:bg-slate-300 disabled:cursor-not-allowed"
           >
             Import Configuration
           </button>
           <a
             href="/mqtt"
-            className="flex justify-center px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
+            className="flex justify-center px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md shadow-xs hover:bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
           >
             Cancel
           </a>

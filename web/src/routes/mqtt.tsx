@@ -91,7 +91,7 @@ export default function MqttListComponent() {
         <div className="flex flex-wrap gap-3 mb-4">
           <Link
             to="/mqtt/new-profile"
-            className="inline-flex items-center justify-center h-10 gap-2 px-5 text-sm font-medium tracking-wide transition duration-300 border rounded-full focus-visible:outline-none whitespace-nowrap border-emerald-500 text-emerald-500 hover:border-emerald-600 hover:text-emerald-600 focus:border-emerald-700 focus:text-emerald-700 disabled:cursor-not-allowed disabled:border-emerald-300 disabled:text-emerald-300 disabled:shadow-none"
+            className="inline-flex items-center justify-center h-10 gap-2 px-5 text-sm font-medium tracking-wide transition duration-300 border rounded-full focus-visible:outline-hidden whitespace-nowrap border-emerald-500 text-emerald-500 hover:border-emerald-600 hover:text-emerald-600 focus:border-emerald-700 focus:text-emerald-700 disabled:cursor-not-allowed disabled:border-emerald-300 disabled:text-emerald-300 disabled:shadow-none"
           >
             <span className="order-2">New profile</span>
             <span className="relative only:-mx-4">
@@ -100,7 +100,7 @@ export default function MqttListComponent() {
           </Link>
           <Link
             to="/mqtt/import"
-            className="inline-flex items-center justify-center h-10 gap-2 px-5 text-sm font-medium tracking-wide transition duration-300 border rounded-full focus-visible:outline-none whitespace-nowrap border-blue-500 text-blue-500 hover:border-blue-600 hover:text-blue-600 focus:border-blue-700 focus:text-blue-700 disabled:cursor-not-allowed disabled:border-blue-300 disabled:text-blue-300 disabled:shadow-none"
+            className="inline-flex items-center justify-center h-10 gap-2 px-5 text-sm font-medium tracking-wide transition duration-300 border rounded-full focus-visible:outline-hidden whitespace-nowrap border-blue-500 text-blue-500 hover:border-blue-600 hover:text-blue-600 focus:border-blue-700 focus:text-blue-700 disabled:cursor-not-allowed disabled:border-blue-300 disabled:text-blue-300 disabled:shadow-none"
           >
             <span className="order-2">Import</span>
             <span className="relative only:-mx-4">
@@ -110,7 +110,7 @@ export default function MqttListComponent() {
           <button
             onClick={handleExport}
             disabled={profiles.length === 0 && clients.length === 0}
-            className="inline-flex items-center justify-center h-10 gap-2 px-5 text-sm font-medium tracking-wide transition duration-300 border rounded-full focus-visible:outline-none whitespace-nowrap border-blue-500 text-blue-500 hover:border-blue-600 hover:text-blue-600 focus:border-blue-700 focus:text-blue-700 disabled:cursor-not-allowed disabled:border-slate-300 disabled:text-slate-300 disabled:shadow-none"
+            className="inline-flex items-center justify-center h-10 gap-2 px-5 text-sm font-medium tracking-wide transition duration-300 border rounded-full focus-visible:outline-hidden whitespace-nowrap border-blue-500 text-blue-500 hover:border-blue-600 hover:text-blue-600 focus:border-blue-700 focus:text-blue-700 disabled:cursor-not-allowed disabled:border-slate-300 disabled:text-slate-300 disabled:shadow-none"
           >
             <span className="order-2">Export</span>
             <span className="relative only:-mx-4">
@@ -141,7 +141,7 @@ export default function MqttListComponent() {
                       <div className="flex items-center gap-2">
                         <Link
                           to={editProfileUrl}
-                          className="inline-flex h-10 items-center justify-center gap-2 justify-self-center whitespace-nowrap rounded-full px-5 text-sm font-medium tracking-wide text-slate-500 transition duration-300 hover:bg-emerald-50 hover:text-emerald-600 focus:bg-emerald-100 focus:text-emerald-700 focus-visible:outline-none disabled:cursor-not-allowed disabled:text-emerald-300 disabled:shadow-none disabled:hover:bg-transparent"
+                          className="inline-flex h-10 items-center justify-center gap-2 justify-self-center whitespace-nowrap rounded-full px-5 text-sm font-medium tracking-wide text-slate-500 transition duration-300 hover:bg-emerald-50 hover:text-emerald-600 focus:bg-emerald-100 focus:text-emerald-700 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:text-emerald-300 disabled:shadow-none disabled:hover:bg-transparent"
                         >
                           <span className="relative only:-mx-5">
                             <span className="sr-only">Edit profile</span>
@@ -150,7 +150,7 @@ export default function MqttListComponent() {
                         </Link>
                         {profileClients.length === 0 && (
                           <DialogTrigger>
-                            <Button className="inline-flex h-10 items-center justify-center gap-2 justify-self-center whitespace-nowrap rounded-full px-5 text-sm font-medium tracking-wide text-slate-500 transition duration-300 hover:bg-red-50 hover:text-red-600 focus:bg-red-100 focus:text-red-700 focus-visible:outline-none disabled:cursor-not-allowed disabled:text-emerald-300 disabled:shadow-none disabled:hover:bg-transparent">
+                            <Button className="inline-flex h-10 items-center justify-center gap-2 justify-self-center whitespace-nowrap rounded-full px-5 text-sm font-medium tracking-wide text-slate-500 transition duration-300 hover:bg-red-50 hover:text-red-600 focus:bg-red-100 focus:text-red-700 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:text-emerald-300 disabled:shadow-none disabled:hover:bg-transparent">
                               <span className="relative only:-mx-5">
                                 <span className="sr-only">Delete profile</span>
                                 <IconX />
@@ -158,13 +158,13 @@ export default function MqttListComponent() {
                             </Button>
                             <ModalOverlay
                               className={
-                                "fixed top-0 left-0 w-full h-[100dvh] bg-black/50 flex items-center justify-center"
+                                "fixed top-0 left-0 w-full h-dvh bg-black/50 flex items-center justify-center"
                               }
                             >
                               <Modal className={"bg-white p-4 rounded-md"}>
                                 <Dialog
                                   role="alertdialog"
-                                  className={"outline-none"}
+                                  className={"outline-hidden"}
                                 >
                                   {({ close }) => (
                                     <>
@@ -220,7 +220,7 @@ export default function MqttListComponent() {
                       <span></span>
                       <Link
                         to={`/mqtt/new-client/${profile.id}`}
-                        className="inline-flex items-center justify-center h-10 gap-2 px-5 text-sm font-medium tracking-wide transition duration-300 border rounded-full focus-visible:outline-none whitespace-nowrap border-emerald-500 text-emerald-500 hover:border-emerald-600 hover:text-emerald-600 focus:border-emerald-700 focus:text-emerald-700 disabled:cursor-not-allowed disabled:border-emerald-300 disabled:text-emerald-300 disabled:shadow-none"
+                        className="inline-flex items-center justify-center h-10 gap-2 px-5 text-sm font-medium tracking-wide transition duration-300 border rounded-full focus-visible:outline-hidden whitespace-nowrap border-emerald-500 text-emerald-500 hover:border-emerald-600 hover:text-emerald-600 focus:border-emerald-700 focus:text-emerald-700 disabled:cursor-not-allowed disabled:border-emerald-300 disabled:text-emerald-300 disabled:shadow-none"
                       >
                         <span className="order-2">Add Client</span>
                         <span className="relative only:-mx-2">
@@ -264,7 +264,7 @@ export default function MqttListComponent() {
                                 </a>
                               </div>
 
-                              <div className="flex min-h-[2rem] flex-1 flex-col items-start justify-center gap-0 overflow-hidden">
+                              <div className="flex min-h-8 flex-1 flex-col items-start justify-center gap-0 overflow-hidden">
                                 <h5 className="w-full truncate text-sm text-slate-700">
                                   {client.id}
                                 </h5>
@@ -285,7 +285,7 @@ export default function MqttListComponent() {
                               <div>
                                 <Link
                                   to={editClientUrl}
-                                  className="inline-flex h-8 items-center justify-center gap-2 justify-self-center whitespace-nowrap rounded-full px-4 text-xs font-medium tracking-wide text-slate-500 transition duration-300 hover:bg-emerald-50 hover:text-emerald-600 focus:bg-emerald-100 focus:text-emerald-700 focus-visible:outline-none disabled:cursor-not-allowed disabled:text-emerald-300 disabled:shadow-none disabled:hover:bg-transparent"
+                                  className="inline-flex h-8 items-center justify-center gap-2 justify-self-center whitespace-nowrap rounded-full px-4 text-xs font-medium tracking-wide text-slate-500 transition duration-300 hover:bg-emerald-50 hover:text-emerald-600 focus:bg-emerald-100 focus:text-emerald-700 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:text-emerald-300 disabled:shadow-none disabled:hover:bg-transparent"
                                 >
                                   <span className="relative only:-mx-4">
                                     <span className="sr-only">Edit client</span>
@@ -293,7 +293,7 @@ export default function MqttListComponent() {
                                   </span>
                                 </Link>
                                 <DialogTrigger>
-                                  <Button className="inline-flex h-8 items-center justify-center gap-2 justify-self-center whitespace-nowrap rounded-full px-4 text-xs font-medium tracking-wide text-slate-500 transition duration-300 hover:bg-red-50 hover:text-red-600 focus:bg-red-100 focus:text-red-700 focus-visible:outline-none disabled:cursor-not-allowed disabled:text-emerald-300 disabled:shadow-none disabled:hover:bg-transparent">
+                                  <Button className="inline-flex h-8 items-center justify-center gap-2 justify-self-center whitespace-nowrap rounded-full px-4 text-xs font-medium tracking-wide text-slate-500 transition duration-300 hover:bg-red-50 hover:text-red-600 focus:bg-red-100 focus:text-red-700 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:text-emerald-300 disabled:shadow-none disabled:hover:bg-transparent">
                                     <span className="relative only:-mx-4">
                                       <span className="sr-only">
                                         Delete client
@@ -303,7 +303,7 @@ export default function MqttListComponent() {
                                   </Button>
                                   <ModalOverlay
                                     className={
-                                      "fixed top-0 left-0 w-full h-[100dvh] bg-black/50 flex items-center justify-center"
+                                      "fixed top-0 left-0 w-full h-dvh bg-black/50 flex items-center justify-center"
                                     }
                                   >
                                     <Modal
@@ -311,7 +311,7 @@ export default function MqttListComponent() {
                                     >
                                       <Dialog
                                         role="alertdialog"
-                                        className={"outline-none"}
+                                        className={"outline-hidden"}
                                       >
                                         {({ close }) => (
                                           <>

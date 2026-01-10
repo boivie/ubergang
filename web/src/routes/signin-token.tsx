@@ -134,7 +134,7 @@ export default function SigninToken() {
         </div>
         <button
           onClick={retry}
-          className="block w-full px-4 py-2 text-sm font-medium text-white text-center border border-transparent rounded-md shadow-sm bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+          className="block w-full px-4 py-2 text-sm font-medium text-white text-center border border-transparent rounded-md shadow-xs bg-orange-600 hover:bg-orange-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
         >
           Retry
         </button>
@@ -167,7 +167,7 @@ export default function SigninToken() {
         </div>
         <a
           href="/signin"
-          className="block w-full px-4 py-2 text-sm font-medium text-white text-center border border-transparent rounded-md shadow-sm bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
+          className="block w-full px-4 py-2 text-sm font-medium text-white text-center border border-transparent rounded-md shadow-xs bg-emerald-600 hover:bg-emerald-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
         >
           Sign in again
         </a>
@@ -188,7 +188,7 @@ export default function SigninToken() {
             Use a signed-in device to scan this QR code:
           </p>
           <div className="flex justify-center mb-4">
-            <div className="bg-white p-4 rounded-lg shadow-sm border">
+            <div className="bg-white p-4 rounded-lg shadow-xs border">
               <img
                 src={res.pending.qr_code_url}
                 alt="QR Code for sign-in confirmation"
@@ -215,7 +215,7 @@ export default function SigninToken() {
             {numbers.map((digit, i) => (
               <div
                 key={i}
-                className="bg-white w-12 h-12 flex items-center justify-center rounded-lg border-2 border-slate-200 shadow-sm"
+                className="bg-white w-12 h-12 flex items-center justify-center rounded-lg border-2 border-slate-200 shadow-xs"
               >
                 <span className="font-bold text-xl text-slate-800">
                   {digit}

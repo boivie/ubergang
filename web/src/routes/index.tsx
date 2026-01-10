@@ -67,7 +67,7 @@ export default function Index() {
         <>
           <Link
             to="/enroll"
-            className="inline-flex items-center justify-center h-10 gap-2 px-5 text-sm font-medium tracking-wide transition duration-300 border rounded-full focus-visible:outline-none whitespace-nowrap border-emerald-500 text-emerald-500 hover:border-emerald-600 hover:text-emerald-600 focus:border-emerald-700 focus:text-emerald-700 disabled:cursor-not-allowed disabled:border-emerald-300 disabled:text-emerald-300 disabled:shadow-none"
+            className="inline-flex items-center justify-center h-10 gap-2 px-5 text-sm font-medium tracking-wide transition duration-300 border rounded-full focus-visible:outline-hidden whitespace-nowrap border-emerald-500 text-emerald-500 hover:border-emerald-600 hover:text-emerald-600 focus:border-emerald-700 focus:text-emerald-700 disabled:cursor-not-allowed disabled:border-emerald-300 disabled:text-emerald-300 disabled:shadow-none"
           >
             <span className="order-2">Create a passkey</span>
             <span className="relative only:-mx-4">
@@ -91,7 +91,7 @@ export default function Index() {
                   </a>
                 </div>
 
-                <div className="flex min-h-[2rem] flex-1 flex-col items-start justify-center gap-0 overflow-hidden">
+                <div className="flex min-h-8 flex-1 flex-col items-start justify-center gap-0 overflow-hidden">
                   <h4 className="w-full truncate text-base text-slate-700">
                     {e.name}
                   </h4>
@@ -104,7 +104,7 @@ export default function Index() {
                 <div>
                   <Link
                     to={`/credentials/edit/${e.id}`}
-                    className="inline-flex h-10 items-center justify-center gap-2 justify-self-center whitespace-nowrap rounded-full px-5 text-sm font-medium tracking-wide text-slate-500 transition duration-300 hover:bg-emerald-50 hover:text-emerald-600 focus:bg-emerald-100 focus:text-emerald-700 focus-visible:outline-none disabled:cursor-not-allowed disabled:text-emerald-300 disabled:shadow-none disabled:hover:bg-transparent"
+                    className="inline-flex h-10 items-center justify-center gap-2 justify-self-center whitespace-nowrap rounded-full px-5 text-sm font-medium tracking-wide text-slate-500 transition duration-300 hover:bg-emerald-50 hover:text-emerald-600 focus:bg-emerald-100 focus:text-emerald-700 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:text-emerald-300 disabled:shadow-none disabled:hover:bg-transparent"
                   >
                     <span className="relative only:-mx-5">
                       <span className="sr-only">Edit passkey</span>
@@ -112,7 +112,7 @@ export default function Index() {
                     </span>
                   </Link>
                   <DialogTrigger>
-                    <Button className="inline-flex h-10 items-center justify-center gap-2 justify-self-center whitespace-nowrap rounded-full px-5 text-sm font-medium tracking-wide text-slate-500 transition duration-300 hover:bg-red-50 hover:text-red-600 focus:bg-red-100 focus:text-red-700 focus-visible:outline-none disabled:cursor-not-allowed disabled:text-emerald-300 disabled:shadow-none disabled:hover:bg-transparent">
+                    <Button className="inline-flex h-10 items-center justify-center gap-2 justify-self-center whitespace-nowrap rounded-full px-5 text-sm font-medium tracking-wide text-slate-500 transition duration-300 hover:bg-red-50 hover:text-red-600 focus:bg-red-100 focus:text-red-700 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:text-emerald-300 disabled:shadow-none disabled:hover:bg-transparent">
                       <span className="relative only:-mx-5">
                         <span className="sr-only">Delete passkey</span>
                         <IconX />
@@ -120,11 +120,11 @@ export default function Index() {
                     </Button>
                     <ModalOverlay
                       className={
-                        "fixed top-0 left-0 w-full h-[100dvh] bg-black/50 flex items-center justify-center"
+                        "fixed top-0 left-0 w-full h-dvh bg-black/50 flex items-center justify-center"
                       }
                     >
                       <Modal className={"bg-white p-4 rounded-md"}>
-                        <Dialog role="alertdialog" className={"outline-none"}>
+                        <Dialog role="alertdialog" className={"outline-hidden"}>
                           {({ close }) => (
                             <>
                               <Heading
@@ -174,7 +174,7 @@ export default function Index() {
             return (
               <li key={e.id} className="flex items-center gap-4 px-4 py-3">
                 <div className="self-start">{getDeviceIcon(e.userAgent)}</div>
-                <div className="flex min-h-[2rem] flex-1 flex-col items-start justify-center gap-0 overflow-hidden">
+                <div className="flex min-h-8 flex-1 flex-col items-start justify-center gap-0 overflow-hidden">
                   <h4 className="w-full truncate text-base text-slate-700">
                     {browser.name} on {os.name}
                     {e.id === user.currentSession?.id && (
@@ -190,7 +190,7 @@ export default function Index() {
                 <div>
                   <Link
                     to={`/sessions/${e.id}`}
-                    className="inline-flex h-10 items-center justify-center gap-2 justify-self-center whitespace-nowrap rounded-full px-5 text-sm font-medium tracking-wide text-slate-500 transition duration-300 hover:bg-emerald-50 hover:text-emerald-600 focus:bg-emerald-100 focus:text-emerald-700 focus-visible:outline-none disabled:cursor-not-allowed disabled:text-emerald-300 disabled:shadow-none disabled:hover:bg-transparent"
+                    className="inline-flex h-10 items-center justify-center gap-2 justify-self-center whitespace-nowrap rounded-full px-5 text-sm font-medium tracking-wide text-slate-500 transition duration-300 hover:bg-emerald-50 hover:text-emerald-600 focus:bg-emerald-100 focus:text-emerald-700 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:text-emerald-300 disabled:shadow-none disabled:hover:bg-transparent"
                   >
                     <span className="relative only:-mx-5">
                       <span className="sr-only">Session details</span>

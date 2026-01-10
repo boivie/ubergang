@@ -112,7 +112,7 @@ export default function ConfirmPin() {
 
               <div className="flex items-start space-x-3">
                 <IconGlobe
-                  className="text-slate-500 mt-0.5 flex-shrink-0"
+                  className="text-slate-500 mt-0.5 shrink-0"
                   size={16}
                 />
                 <div>
@@ -127,7 +127,7 @@ export default function ConfirmPin() {
 
               <div className="flex items-start space-x-3">
                 <IconDeviceMobile
-                  className="text-slate-500 mt-0.5 flex-shrink-0"
+                  className="text-slate-500 mt-0.5 shrink-0"
                   size={16}
                 />
                 <div>
@@ -152,7 +152,7 @@ export default function ConfirmPin() {
             <button
               type="button"
               onClick={startAssertion}
-              className="w-full px-4 py-3 text-sm font-medium text-white border border-transparent rounded-md shadow-sm bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
+              className="w-full px-4 py-3 text-sm font-medium text-white border border-transparent rounded-md shadow-xs bg-emerald-600 hover:bg-emerald-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
             >
               <div className="flex items-center justify-center space-x-2">
                 <IconDeviceDesktop size={18} />
@@ -206,7 +206,7 @@ export default function ConfirmPin() {
                     setState({ type: "confirm" });
                   }
                 }}
-                className="flex-1 px-4 py-2 text-sm font-medium text-white border border-transparent rounded-md shadow-sm bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                className="flex-1 px-4 py-2 text-sm font-medium text-white border border-transparent rounded-md shadow-xs bg-red-600 hover:bg-red-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
               >
                 {req.error?.invalidPin ? "Retry" : "Try Again"}
               </button>
