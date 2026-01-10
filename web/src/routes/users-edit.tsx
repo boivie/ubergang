@@ -173,7 +173,7 @@ export default function UsersEdit() {
             <input
               id="email"
               type="email"
-              className="block w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm"
+              className="block w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md shadow-xs appearance-none focus:outline-hidden focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm"
               name="email"
               value={email}
               onChange={(v) => setEmail(v.target.value)}
@@ -192,7 +192,7 @@ export default function UsersEdit() {
             <input
               id="displayName"
               type="text"
-              className="block w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm"
+              className="block w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md shadow-xs appearance-none focus:outline-hidden focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm"
               name="displayName"
               value={displayName}
               onChange={(v) => setDisplayName(v.target.value)}
@@ -207,7 +207,7 @@ export default function UsersEdit() {
               name="admin"
               checked={admin}
               onChange={(e) => setAdmin(e.target.checked)}
-              className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
+              className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded-sm"
             />
             <span className="ml-2 text-sm font-medium text-slate-700">
               Administrator
@@ -242,7 +242,7 @@ export default function UsersEdit() {
                   type="button"
                   onClick={() => removeHost(index)}
                   aria-label={`Remove host ${host}`}
-                  className="p-2 inline-flex h-10 items-center justify-center gap-2 justify-self-center whitespace-nowrap rounded-full px-5 text-sm font-medium tracking-wide text-slate-500 transition duration-300 hover:bg-red-50 hover:text-red-600 focus:bg-red-100 focus:text-red-700 focus-visible:outline-none disabled:cursor-not-allowed disabled:text-emerald-300 disabled:shadow-none disabled:hover:bg-transparent"
+                  className="p-2 inline-flex h-10 items-center justify-center gap-2 justify-self-center whitespace-nowrap rounded-full px-5 text-sm font-medium tracking-wide text-slate-500 transition duration-300 hover:bg-red-50 hover:text-red-600 focus:bg-red-100 focus:text-red-700 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:text-emerald-300 disabled:shadow-none disabled:hover:bg-transparent"
                 >
                   <IconX size={20} />
                 </button>
@@ -252,7 +252,7 @@ export default function UsersEdit() {
           <button
             type="button"
             onClick={addHost}
-            className="inline-flex items-center justify-center h-10 gap-2 px-5 mt-2 text-sm font-medium tracking-wide transition duration-300 border rounded-full focus-visible:outline-none whitespace-nowrap border-emerald-500 text-emerald-500 hover:border-emerald-600 hover:text-emerald-600 focus:border-emerald-700 focus:text-emerald-700 disabled:cursor-not-allowed disabled:border-emerald-300 disabled:text-emerald-300 disabled:shadow-none"
+            className="inline-flex items-center justify-center h-10 gap-2 px-5 mt-2 text-sm font-medium tracking-wide transition duration-300 border rounded-full focus-visible:outline-hidden whitespace-nowrap border-emerald-500 text-emerald-500 hover:border-emerald-600 hover:text-emerald-600 focus:border-emerald-700 focus:text-emerald-700 disabled:cursor-not-allowed disabled:border-emerald-300 disabled:text-emerald-300 disabled:shadow-none"
           >
             <IconPlus size={16} />
             Add Host
@@ -262,7 +262,7 @@ export default function UsersEdit() {
         <div>
           <button
             type="submit"
-            className="flex justify-center w-full px-4 py-2 text-sm font-medium text-white border border-transparent rounded-md shadow-sm bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
+            className="flex justify-center w-full px-4 py-2 text-sm font-medium text-white border border-transparent rounded-md shadow-xs bg-emerald-600 hover:bg-emerald-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
           >
             Save Changes
           </button>
@@ -284,7 +284,7 @@ export default function UsersEdit() {
               type="button"
               onClick={generateRecoveryUrl}
               disabled={isGenerating}
-              className="inline-flex items-center justify-center h-10 gap-2 px-5 text-sm font-medium tracking-wide transition duration-300 border rounded-full focus-visible:outline-none whitespace-nowrap border-emerald-500 text-emerald-500 hover:border-emerald-600 hover:text-emerald-600 focus:border-emerald-700 focus:text-emerald-700 disabled:cursor-not-allowed disabled:border-emerald-300 disabled:text-emerald-300 disabled:shadow-none"
+              className="inline-flex items-center justify-center h-10 gap-2 px-5 text-sm font-medium tracking-wide transition duration-300 border rounded-full focus-visible:outline-hidden whitespace-nowrap border-emerald-500 text-emerald-500 hover:border-emerald-600 hover:text-emerald-600 focus:border-emerald-700 focus:text-emerald-700 disabled:cursor-not-allowed disabled:border-emerald-300 disabled:text-emerald-300 disabled:shadow-none"
             >
               {isGenerating ? "Generating..." : "Generate Recovery URL"}
             </button>
@@ -295,12 +295,12 @@ export default function UsersEdit() {
                   type="text"
                   value={recoveryUrl}
                   readOnly
-                  className="block w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
+                  className="block w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-md shadow-xs focus:outline-hidden focus:ring-emerald-500 focus:border-emerald-500"
                 />
                 <button
                   type="button"
                   onClick={copyToClipboard}
-                  className="inline-flex items-center justify-center h-10 gap-2 px-3 text-sm font-medium tracking-wide transition duration-300 border rounded-md focus-visible:outline-none whitespace-nowrap border-emerald-500 text-emerald-500 hover:border-emerald-600 hover:text-emerald-600 focus:border-emerald-700 focus:text-emerald-700"
+                  className="inline-flex items-center justify-center h-10 gap-2 px-3 text-sm font-medium tracking-wide transition duration-300 border rounded-md focus-visible:outline-hidden whitespace-nowrap border-emerald-500 text-emerald-500 hover:border-emerald-600 hover:text-emerald-600 focus:border-emerald-700 focus:text-emerald-700"
                 >
                   {copySuccess ? (
                     <IconCheck size={16} />
@@ -351,7 +351,7 @@ export default function UsersEdit() {
                   </a>
                 </div>
 
-                <div className="flex min-h-[2rem] flex-1 flex-col items-start justify-center gap-0 overflow-hidden">
+                <div className="flex min-h-8 flex-1 flex-col items-start justify-center gap-0 overflow-hidden">
                   <h4 className="w-full truncate text-base text-slate-700">
                     {credential.name}
                   </h4>
@@ -367,15 +367,15 @@ export default function UsersEdit() {
                   <DialogTrigger>
                     <Button
                       aria-label={`Delete passkey ${credential.name}`}
-                      className="inline-flex h-10 items-center justify-center gap-2 justify-self-center whitespace-nowrap rounded-full px-5 text-sm font-medium tracking-wide text-slate-500 transition duration-300 hover:bg-red-50 hover:text-red-600 focus:bg-red-100 focus:text-red-700 focus-visible:outline-none disabled:cursor-not-allowed disabled:text-emerald-300 disabled:shadow-none disabled:hover:bg-transparent"
+                      className="inline-flex h-10 items-center justify-center gap-2 justify-self-center whitespace-nowrap rounded-full px-5 text-sm font-medium tracking-wide text-slate-500 transition duration-300 hover:bg-red-50 hover:text-red-600 focus:bg-red-100 focus:text-red-700 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:text-emerald-300 disabled:shadow-none disabled:hover:bg-transparent"
                     >
                       <span className="relative only:-mx-5">
                         <IconX />
                       </span>
                     </Button>
-                    <ModalOverlay className="fixed top-0 left-0 w-full h-[100dvh] bg-black/50 flex items-center justify-center">
+                    <ModalOverlay className="fixed top-0 left-0 w-full h-dvh bg-black/50 flex items-center justify-center">
                       <Modal className="bg-white p-4 rounded-md">
-                        <Dialog role="alertdialog" className="outline-none">
+                        <Dialog role="alertdialog" className="outline-hidden">
                           {({ close }) => (
                             <>
                               <Heading
@@ -449,7 +449,7 @@ export default function UsersEdit() {
                   <div className="self-start">
                     {getDeviceIcon(session.userAgent)}
                   </div>
-                  <div className="flex min-h-[2rem] flex-1 flex-col items-start justify-center gap-0 overflow-hidden">
+                  <div className="flex min-h-8 flex-1 flex-col items-start justify-center gap-0 overflow-hidden">
                     <h4 className="w-full truncate text-base text-slate-700">
                       {browser.name} on {os.name}
                       {session.id === user.currentSession?.id && (
@@ -466,15 +466,15 @@ export default function UsersEdit() {
                     <DialogTrigger>
                       <Button
                         aria-label={`Delete session for ${browser.name} on ${os.name}`}
-                        className="inline-flex h-10 items-center justify-center gap-2 justify-self-center whitespace-nowrap rounded-full px-5 text-sm font-medium tracking-wide text-slate-500 transition duration-300 hover:bg-red-50 hover:text-red-600 focus:bg-red-100 focus:text-red-700 focus-visible:outline-none disabled:cursor-not-allowed disabled:text-emerald-300 disabled:shadow-none disabled:hover:bg-transparent"
+                        className="inline-flex h-10 items-center justify-center gap-2 justify-self-center whitespace-nowrap rounded-full px-5 text-sm font-medium tracking-wide text-slate-500 transition duration-300 hover:bg-red-50 hover:text-red-600 focus:bg-red-100 focus:text-red-700 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:text-emerald-300 disabled:shadow-none disabled:hover:bg-transparent"
                       >
                         <span className="relative only:-mx-5">
                           <IconX />
                         </span>
                       </Button>
-                      <ModalOverlay className="fixed top-0 left-0 w-full h-[100dvh] bg-black/50 flex items-center justify-center">
+                      <ModalOverlay className="fixed top-0 left-0 w-full h-dvh bg-black/50 flex items-center justify-center">
                         <Modal className="bg-white p-4 rounded-md">
-                          <Dialog role="alertdialog" className="outline-none">
+                          <Dialog role="alertdialog" className="outline-hidden">
                             {({ close }) => (
                               <>
                                 <Heading

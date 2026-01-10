@@ -86,7 +86,7 @@ export default function Confirm() {
                   handleSubmitPin(pin);
                 }}
                 disabled={pin.length !== 6}
-                className="w-full px-4 py-2 text-sm font-medium text-white border border-transparent rounded-md shadow-sm bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-4 py-2 text-sm font-medium text-white border border-transparent rounded-md shadow-xs bg-emerald-600 hover:bg-emerald-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Confirm Sign In
               </button>
@@ -117,7 +117,7 @@ export default function Confirm() {
                 setState({ type: "input" });
                 setPin("");
               }}
-              className="w-full px-4 py-2 text-sm font-medium text-white border border-transparent rounded-md shadow-sm bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+              className="w-full px-4 py-2 text-sm font-medium text-white border border-transparent rounded-md shadow-xs bg-red-600 hover:bg-red-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
             >
               Try Again
             </button>

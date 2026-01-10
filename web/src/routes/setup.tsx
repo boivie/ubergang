@@ -103,7 +103,7 @@ export default function SetupComponent() {
                     id="email"
                     type="email"
                     placeholder="admin@example.com"
-                    className="block w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm"
+                    className="block w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md shadow-xs appearance-none focus:outline-hidden focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm"
                     name="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -126,7 +126,7 @@ export default function SetupComponent() {
                     id="domain"
                     type="text"
                     placeholder="example.com"
-                    className="block w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm"
+                    className="block w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md shadow-xs appearance-none focus:outline-hidden focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm"
                     name="domain"
                     value={domain}
                     onChange={(e) => setDomain(e.target.value)}
@@ -140,7 +140,7 @@ export default function SetupComponent() {
               </div>
               <button
                 type="submit"
-                className="w-full px-4 py-2 text-sm font-medium text-white border border-transparent rounded-md shadow-sm bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
+                className="w-full px-4 py-2 text-sm font-medium text-white border border-transparent rounded-md shadow-xs bg-emerald-600 hover:bg-emerald-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
               >
                 Complete Setup
               </button>
@@ -194,7 +194,7 @@ export default function SetupComponent() {
             <button
               type="button"
               onClick={() => setState({ type: "input" })}
-              className="w-full px-4 py-2 text-sm font-medium text-white border border-transparent rounded-md shadow-sm bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+              className="w-full px-4 py-2 text-sm font-medium text-white border border-transparent rounded-md shadow-xs bg-red-600 hover:bg-red-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
             >
               Try Again
             </button>
@@ -209,7 +209,7 @@ export default function SetupComponent() {
         <div className="p-6 space-y-6 sm:p-8">
           <div className="text-center">
             <h1 className="text-2xl leading-tight tracking-tight text-slate-800 md:text-3xl">
-              <span className="flex items-center gap-1.5 whitespace-nowrap py-3 focus:outline-none lg:flex-1">
+              <span className="flex items-center gap-1.5 whitespace-nowrap py-3 focus:outline-hidden lg:flex-1">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="icon icon-tabler icon-tabler-shield-code"

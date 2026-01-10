@@ -96,7 +96,7 @@ export default function SessionsEdit() {
         </div>
       </div>
       <DialogTrigger>
-        <Button className="mt-3 inline-flex items-center justify-center h-10 gap-2 px-5 text-sm font-medium tracking-wide text-white transition duration-300 rounded focus-visible:outline-none whitespace-nowrap bg-red-500 hover:bg-red-600 focus:bg-red-700 disabled:cursor-not-allowed disabled:border-red-300 disabled:bg-red-300 disabled:shadow-none">
+        <Button className="mt-3 inline-flex items-center justify-center h-10 gap-2 px-5 text-sm font-medium tracking-wide text-white transition duration-300 rounded-sm focus-visible:outline-hidden whitespace-nowrap bg-red-500 hover:bg-red-600 focus:bg-red-700 disabled:cursor-not-allowed disabled:border-red-300 disabled:bg-red-300 disabled:shadow-none">
           <span className="order-2">Sign out</span>
           <span className="relative only:-mx-5">
             <IconLogout2 size={24} />
@@ -104,11 +104,11 @@ export default function SessionsEdit() {
         </Button>
         <ModalOverlay
           className={
-            "fixed top-0 left-0 w-full h-[100dvh] bg-black/50 flex items-center justify-center"
+            "fixed top-0 left-0 w-full h-dvh bg-black/50 flex items-center justify-center"
           }
         >
           <Modal className={"bg-white p-4 rounded-md"}>
-            <Dialog role="alertdialog" className={"outline-none"}>
+            <Dialog role="alertdialog" className={"outline-hidden"}>
               {({ close }) => (
                 <>
                   <Heading slot="title" className={"text-lg font-semibold"}>

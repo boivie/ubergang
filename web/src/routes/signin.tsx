@@ -193,7 +193,7 @@ export default function SignIn() {
             <div className="pt-4 w-full max-w-xs">
               <button
                 onClick={() => startSigninPinFlow(state.email)}
-                className="w-full px-4 py-2 text-sm font-medium text-emerald-700 bg-emerald-100 border border-transparent rounded-md hover:bg-emerald-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
+                className="w-full px-4 py-2 text-sm font-medium text-emerald-700 bg-emerald-100 border border-transparent rounded-md hover:bg-emerald-200 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
               >
                 Sign in with another device
               </button>
@@ -212,7 +212,7 @@ export default function SignIn() {
             <button
               type="button"
               onClick={() => setState({ state: "email" })}
-              className="w-full px-4 py-2 text-sm font-medium text-white border border-transparent rounded-md shadow-sm bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+              className="w-full px-4 py-2 text-sm font-medium text-white border border-transparent rounded-md shadow-xs bg-red-600 hover:bg-red-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
             >
               Try Again
             </button>
@@ -231,7 +231,7 @@ export default function SignIn() {
             <button
               type="button"
               onClick={() => setState({ state: "email" })}
-              className="w-full px-4 py-2 text-sm font-medium text-white border border-transparent rounded-md shadow-sm bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+              className="w-full px-4 py-2 text-sm font-medium text-white border border-transparent rounded-md shadow-xs bg-red-600 hover:bg-red-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
             >
               Try Again
             </button>

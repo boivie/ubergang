@@ -146,7 +146,7 @@ const OTPInput = ({
       {Array.from({ length: numInputs }, (_, index) => index).map((index) => (
         <input
           key={index}
-          className="mx-1 h-12 w-12 text-center text-lg font-medium border-2 border-gray-300 rounded-lg focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1 bg-white shadow-sm"
+          className="mx-1 h-12 w-12 text-center text-lg font-medium border-2 border-gray-300 rounded-lg focus:border-emerald-500 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1 bg-white shadow-xs"
           type="text"
           maxLength={1}
           name={"code" + (index + 1)}
