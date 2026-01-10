@@ -86,9 +86,9 @@ export interface ApiFinishEnrollResponse {
   error?: ApiFinishEnrollError;
 }
 
-export interface ApiStartEnrollRequest {}
+export type ApiStartEnrollRequest = Record<string, never>;
 
-export interface ApiEnrollStartError {}
+export type ApiEnrollStartError = Record<string, never>;
 
 export interface ApiStartEnrollResponse {
   error?: ApiEnrollStartError;
@@ -99,7 +99,7 @@ export interface ApiUpdateCredentialRequest {
   name?: string;
 }
 
-export interface ApiUpdateCredentialResponse {}
+export type ApiUpdateCredentialResponse = Record<string, never>;
 
 export interface ApiBackendHeader {
   name: string;
@@ -123,7 +123,7 @@ export interface ApiUpdateBackendRequest {
   jsScript?: string;
 }
 
-export interface ApiUpdateBackendResponse {}
+export type ApiUpdateBackendResponse = Record<string, never>;
 
 export interface ApiListBackendsResponse {
   backends: ApiBackend[];
@@ -140,7 +140,7 @@ export interface ApiUpdateMqttProfileRequest {
   allow_subscribe?: string[];
 }
 
-export interface ApiUpdateMqttProfileResponse {}
+export type ApiUpdateMqttProfileResponse = Record<string, never>;
 
 export interface ApiListMqttProfilesResponse {
   mqtt_profiles: ApiMqttProfile[];
@@ -173,7 +173,7 @@ export interface ApiUpdateMqttClientRequest {
   values?: { [key: string]: string };
 }
 
-export interface ApiUpdateMqttClientResponse {}
+export type ApiUpdateMqttClientResponse = Record<string, never>;
 
 export interface ApiListMqttClientsResponse {
   mqtt_clients: ApiMqttClient[];
@@ -410,7 +410,7 @@ export interface ApiUpdateUserRequest {
   allowedHosts?: string[];
 }
 
-export interface ApiUpdateUserResponse {}
+export type ApiUpdateUserResponse = Record<string, never>;
 
 export interface ApiUserRecoverResponse {
   recoveryUrl: string;

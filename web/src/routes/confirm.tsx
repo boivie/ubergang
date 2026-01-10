@@ -42,7 +42,7 @@ export default function Confirm() {
       } else {
         window.location.href = "/confirm/" + pin;
       }
-    } catch (error) {
+    } catch (_error) {
       setState({
         type: "error",
         message: "Network error. Please check your connection and try again.",
