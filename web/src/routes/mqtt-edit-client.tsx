@@ -7,7 +7,7 @@ import {
 } from "react-router";
 import { ApiService } from "../api/api_client";
 import { ApiMqttClient } from "../api/api_types";
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { IconPlus, IconRefresh, IconX } from "@tabler/icons-react";
 
 export async function EditMqttClientLoader(api: ApiService, id: string) {
@@ -63,11 +63,11 @@ export default function MqttEditClient() {
       value,
     })),
   );
-  const [valuesStr, setValuesStr] = useState("");
 
-  useEffect(() => {
-    setValuesStr(values.map((v) => `${v.key}=${v.value}`).join("\n"));
-  }, [values]);
+  const valuesStr = useMemo(
+    () => values.map((v) => `${v.key}=${v.value}`).join("\n"),
+    [values],
+  );
 
   const handleValueChange = (
     id: number,

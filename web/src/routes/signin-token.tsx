@@ -27,7 +27,11 @@ export default function SigninToken() {
   const [res, setRes] = useState<ApiPollSigninPinResponse>(initialRes);
   const [isPollingTimeout, setIsPollingTimeout] = useState<boolean>(false);
   const intervalRef = useRef<number | null>(null);
-  const lastSuccessfulPollRef = useRef<number>(Date.now());
+  const lastSuccessfulPollRef = useRef<number>(0);
+
+  useEffect(() => {
+    lastSuccessfulPollRef.current = Date.now();
+  }, []);
 
   const pollRequest = useCallback(async () => {
     try {
@@ -63,7 +67,6 @@ export default function SigninToken() {
     if (intervalRef.current) return;
 
     lastSuccessfulPollRef.current = Date.now();
-    setIsPollingTimeout(false);
 
     intervalRef.current = setInterval(() => {
       const timeSinceLastSuccess = Date.now() - lastSuccessfulPollRef.current;
@@ -85,26 +88,15 @@ export default function SigninToken() {
   }, []);
 
   useEffect(() => {
-    if (
-      (res.pending || isPollingTimeout) &&
-      !res.error &&
-      !res.success &&
-      !intervalRef.current
-    ) {
+    if (res.pending && !res.error && !res.success && !intervalRef.current) {
       startPolling();
     }
 
     return stopPolling;
-  }, [
-    res.pending,
-    res.error,
-    res.success,
-    isPollingTimeout,
-    startPolling,
-    stopPolling,
-  ]);
+  }, [res.pending, res.error, res.success, startPolling, stopPolling]);
 
   function retry() {
+    setIsPollingTimeout(false);
     startPolling();
   }
 
