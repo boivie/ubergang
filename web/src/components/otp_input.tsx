@@ -152,7 +152,9 @@ const OTPInput = ({
           name={"code" + (index + 1)}
           aria-label={"Please enter OTP character " + (index + 1)}
           value={getOTPValue()[index] ?? ""}
-          ref={(element) => (inputRefs.current[index] = element)}
+          ref={(element) => {
+            inputRefs.current[index] = element;
+          }}
           onChange={handleChange}
           onFocus={(event) => handleFocus(event)(index)}
           onBlur={handleBlur}
