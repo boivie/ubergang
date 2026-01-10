@@ -8,13 +8,7 @@ updates:
       day: "monday"
     open-pull-requests-limit: 5
     groups:
-      development-dependencies:
-        dependency-type: "development"
-        update-types:
-          - "minor"
-          - "patch"
-      production-dependencies:
-        dependency-type: "production"
+      web-dependencies:
         update-types:
           - "minor"
           - "patch"
@@ -27,10 +21,9 @@ updates:
       day: "monday"
     open-pull-requests-limit: 5
     groups:
-      playwright-dependencies:
+      e2e-dependencies:
         patterns:
-          - "@playwright/*"
-          - "playwright"
+          - "*"
 
   # Go dependencies
   - package-ecosystem: "gomod"
@@ -38,7 +31,7 @@ updates:
     schedule:
       interval: "weekly"
       day: "monday"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 5
     groups:
       go-dependencies:
         update-types:
@@ -52,6 +45,10 @@ updates:
       interval: "weekly"
       day: "monday"
     open-pull-requests-limit: 5
+    groups:
+      actions:
+        patterns:
+          - "*"
 
   # Dockerfile
   - package-ecosystem: "docker"
@@ -60,3 +57,7 @@ updates:
       interval: "weekly"
       day: "monday"
     open-pull-requests-limit: 5
+    groups:
+      docker:
+        patterns:
+          - "*"
