@@ -7,7 +7,10 @@ import (
 	"boivie/ubergang/server/mqtt"
 	"boivie/ubergang/server/scripting"
 	"boivie/ubergang/server/session"
+	"crypto/sha256"
 	"crypto/tls"
+	"crypto/x509"
+	"encoding/hex"
 	"fmt"
 	"net/http"
 	"net/http/httputil"
@@ -138,6 +141,34 @@ func evaluate(value string, variables map[string]string) string {
 	return value
 }
 
+func createTLSConfig(pinnedFingerprint string) (*tls.Config, error) {
+	if pinnedFingerprint == "" {
+		// No pinned certificate - use system certificate verification
+		return &tls.Config{
+			InsecureSkipVerify: false,
+		}, nil
+	}
+
+	// Certificate pinning is enabled - verify the fingerprint
+	return &tls.Config{
+		// codeql[go/disabled-certificate-check]
+		InsecureSkipVerify: true, // We'll do custom verification
+		VerifyPeerCertificate: func(rawCerts [][]byte, verifiedChains [][]*x509.Certificate) error {
+			// Check if any certificate in the chain matches the pinned fingerprint
+			for _, rawCert := range rawCerts {
+				hash := sha256.Sum256(rawCert)
+				fingerprint := hex.EncodeToString(hash[:])
+
+				if strings.EqualFold(fingerprint, pinnedFingerprint) {
+					return nil
+				}
+			}
+
+			return fmt.Errorf("certificate fingerprint mismatch: none of the certificates in the chain match the pinned fingerprint")
+		},
+	}, nil
+}
+
 func (s *Proxy) ProxyRequest(w http.ResponseWriter, r *http.Request, backend backends.Backend, user *models.User, session *models.Session) {
 	upstream := backend.URL()
 
@@ -173,11 +204,11 @@ func (s *Proxy) ProxyRequest(w http.ResponseWriter, r *http.Request, backend bac
 		}
 	}
 
-	tlsConfig := &tls.Config{
-		// The backend server is under our control, and in the event that it is
-		// serving over secure HTTP, it's very likely using an ephemeral self-signed
-		// certificate which can't be verified.
-		InsecureSkipVerify: true,
+	tlsConfig, err := createTLSConfig(backend.PinnedCertificateFingerprint())
+	if err != nil {
+		s.log.Warnf("Failed to create TLS config: %v", err)
+		http.Error(w, "Failed to create TLS config", http.StatusInternalServerError)
+		return
 	}
 
 	proxy := &httputil.ReverseProxy{

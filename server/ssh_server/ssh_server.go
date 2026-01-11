@@ -102,6 +102,9 @@ func (b *roamingBackend) URL() *url.URL {
 func (b *roamingBackend) JsScript() *goja.Program {
 	return nil
 }
+func (b *roamingBackend) PinnedCertificateFingerprint() string {
+	return ""
+}
 func (b *roamingBackend) DialContext(ctx context.Context, network, address string) (net.Conn, error) {
 	payload := gossh.Marshal(&remoteForwardChannelData{
 		DestAddr:   b.bindAddr,
