@@ -21,6 +21,7 @@ type Backend interface {
 	NeedsAuth() bool
 	URL() *url.URL
 	JsScript() *goja.Program
+	PinnedCertificateFingerprint() string
 }
 
 type BackendManager struct {
@@ -47,6 +48,9 @@ func (b *localBackend) Headers() []*models.Header { return b.backend.Headers }
 func (b *localBackend) NeedsAuth() bool           { return b.backend.AccessLevel != models.AccessLevel_PUBLIC }
 func (b *localBackend) URL() *url.URL             { return b.url }
 func (b *localBackend) JsScript() *goja.Program   { return b.program }
+func (b *localBackend) PinnedCertificateFingerprint() string {
+	return b.backend.PinnedCertificateFingerprint
+}
 
 func (b *localBackend) DialContext(ctx context.Context, network, address string) (net.Conn, error) {
 	newAddress := b.url.Host

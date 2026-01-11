@@ -374,6 +374,9 @@ func (b *localFrontend) URL() *url.URL {
 func (b *localFrontend) JsScript() *goja.Program {
 	return nil
 }
+func (b *localFrontend) PinnedCertificateFingerprint() string {
+	return ""
+}
 func (b *localFrontend) DialContext(ctx context.Context, network, address string) (net.Conn, error) {
 	return (&net.Dialer{
 		Timeout:   2 * time.Second,
