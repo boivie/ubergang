@@ -238,5 +238,33 @@ func (s *Proxy) ProxyRequest(w http.ResponseWriter, r *http.Request, backend bac
 func (s *Proxy) backendConnectionError(backend backends.Backend, w http.ResponseWriter, r *http.Request, err error) {
 	backendConnectionErrorsTotalMetric.WithLabelValues(strings.ToLower(r.Host), backend.URL().Host).Inc()
 	s.log.Warnf("Failed to connect to backend %v: %v", backend.URL(), err)
-	http.Error(w, "Failed to connect to backend", 500)
+
+	// Check if this is a TLS certificate validation error
+	errorMsg := "Failed to connect to backend"
+	statusCode := http.StatusBadGateway
+
+	// Check for certificate-related errors
+	if err != nil {
+		errStr := err.Error()
+		// Check for our custom certificate pinning error
+		if strings.Contains(errStr, "certificate fingerprint mismatch") {
+			errorMsg = "Certificate validation failed: The backend's SSL certificate does not match the pinned fingerprint"
+			statusCode = http.StatusBadGateway
+		} else if strings.Contains(errStr, "x509:") || strings.Contains(errStr, "certificate") || strings.Contains(errStr, "tls:") {
+			// Check for standard x509/TLS certificate errors
+			switch {
+			case strings.Contains(errStr, "unknown authority") || strings.Contains(errStr, "certificate signed by unknown authority"):
+				errorMsg = "Certificate validation failed: The backend's SSL certificate is not trusted by the system"
+			case strings.Contains(errStr, "certificate has expired") || strings.Contains(errStr, "certificate is not yet valid"):
+				errorMsg = "Certificate validation failed: The backend's SSL certificate has expired or is not yet valid"
+			case strings.Contains(errStr, "certificate is valid for"):
+				errorMsg = "Certificate validation failed: The backend's SSL certificate hostname does not match"
+			default:
+				errorMsg = fmt.Sprintf("Certificate validation failed: %v", err)
+			}
+			statusCode = http.StatusBadGateway
+		}
+	}
+
+	http.Error(w, errorMsg, statusCode)
 }
