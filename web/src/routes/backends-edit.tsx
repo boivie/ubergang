@@ -6,10 +6,18 @@ import {
   useParams,
 } from "react-router";
 import { ApiService } from "../api/api_client";
-import { ApiBackend } from "../api/api_types";
-import { useMemo, useState } from "react";
-import { IconChevronDown, IconPlus, IconX } from "@tabler/icons-react";
+import { ApiBackend, ApiValidateBackendResponse } from "../api/api_types";
+import { useMemo, useState, useEffect, useRef } from "react";
+import {
+  IconChevronDown,
+  IconPlus,
+  IconX,
+  IconCheck,
+  IconAlertCircle,
+  IconLoader2,
+} from "@tabler/icons-react";
 import { StyledComboBox, StyledItem } from "../components/StyledComboBox";
+import { useApiService } from "../api/api_client";
 
 export async function EditBackendLoader(api: ApiService, fqdn: string) {
   return await api.GetBackend(fqdn);
@@ -64,12 +72,17 @@ const commonHeaderValues: { [key: string]: string[] } = {
 export default function BackendsEdit() {
   const { fqdn } = useParams<{ fqdn: string }>();
   const backend = useLoaderData() as ApiBackend;
+  const api = useApiService();
   const [upstreamUrl, setUpstreamUrl] = useState(backend.upstreamUrl);
   const [accessLevel, setAccessLevel] = useState(
     backend.accessLevel || "NORMAL",
   );
   const [jsScript, setJsScript] = useState(backend.jsScript || "");
   const [isScriptExpanded, setIsScriptExpanded] = useState(!!backend.jsScript);
+  const [isValidating, setIsValidating] = useState(false);
+  const [validationResult, setValidationResult] =
+    useState<ApiValidateBackendResponse | null>(null);
+  const debounceTimerRef = useRef<number | null>(null);
 
   const [headers, setHeaders] = useState<EditableHeader[]>(() =>
     backend.headers.map((h, i) => ({ id: i, ...h })),
@@ -98,6 +111,65 @@ export default function BackendsEdit() {
     setHeaders(headers.filter((h) => h.id !== id));
   };
 
+  const handleValidate = async (url: string) => {
+    if (!url || url.trim() === "") {
+      setValidationResult(null);
+      return;
+    }
+
+    setIsValidating(true);
+    try {
+      const result = await api.ValidateBackend(url);
+      setValidationResult(result);
+    } catch (error) {
+      setValidationResult({
+        reachable: false,
+        tls: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    } finally {
+      setIsValidating(false);
+    }
+  };
+
+  const handleUpstreamUrlChange = (value: string) => {
+    setUpstreamUrl(value);
+
+    // Clear existing timer
+    if (debounceTimerRef.current) {
+      window.clearTimeout(debounceTimerRef.current);
+    }
+
+    // Set new timer for debounced validation
+    debounceTimerRef.current = window.setTimeout(() => {
+      handleValidate(value);
+    }, 1000); // Wait 1 second after user stops typing
+  };
+
+  const handleUpstreamUrlBlur = () => {
+    // Clear debounce timer if exists
+    if (debounceTimerRef.current) {
+      window.clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
+    // Validate immediately on blur
+    handleValidate(upstreamUrl);
+  };
+
+  // Validate on initial load
+  useEffect(() => {
+    handleValidate(upstreamUrl);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        window.clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, []);
+
   return (
     <div className="max-w-xl mx-auto">
       <h1 className="text-2xl font-bold text-slate-800">Edit {fqdn}</h1>
@@ -115,16 +187,96 @@ export default function BackendsEdit() {
           >
             Upstream URL
           </label>
-          <div className="mt-1">
+          <div className="mt-1 relative">
             <input
               id="upstream"
               type="text"
-              className="block w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md shadow-xs appearance-none focus:outline-hidden focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm"
+              className={`block w-full px-3 py-2 pr-10 placeholder-gray-400 border rounded-md shadow-xs appearance-none focus:outline-hidden sm:text-sm ${
+                validationResult === null
+                  ? "border-gray-300 focus:ring-emerald-500 focus:border-emerald-500"
+                  : validationResult.reachable
+                    ? "border-emerald-500 focus:ring-emerald-500 focus:border-emerald-600"
+                    : "border-red-500 focus:ring-red-500 focus:border-red-600"
+              }`}
               name="upstream"
               value={upstreamUrl}
-              onChange={(v) => setUpstreamUrl(v.target.value)}
+              onChange={(e) => handleUpstreamUrlChange(e.target.value)}
+              onBlur={handleUpstreamUrlBlur}
             />
+            {isValidating && (
+              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                <IconLoader2 size={20} className="text-slate-400 animate-spin" />
+              </div>
+            )}
+            {!isValidating && validationResult && (
+              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                {validationResult.reachable ? (
+                  <IconCheck size={20} className="text-emerald-500" />
+                ) : (
+                  <IconAlertCircle size={20} className="text-red-500" />
+                )}
+              </div>
+            )}
           </div>
+          {validationResult && !validationResult.reachable && (
+            <p className="mt-1 text-sm text-red-600">
+              {validationResult.error || "Backend is not reachable"}
+            </p>
+          )}
+          {validationResult && validationResult.reachable && (
+            <div className="mt-2">
+              <p className="text-xs text-emerald-700 flex items-center gap-1">
+                <IconCheck size={14} />
+                Backend is reachable via {validationResult.tls ? "HTTPS" : "HTTP"}
+              </p>
+              {validationResult.certificates &&
+                validationResult.certificates.length > 0 && (
+                  <details className="mt-2 text-xs">
+                    <summary className="cursor-pointer text-slate-600 hover:text-slate-800 font-medium">
+                      View Certificate Details ({validationResult.certificates.length}{" "}
+                      certificate{validationResult.certificates.length > 1 ? "s" : ""})
+                    </summary>
+                    <div className="mt-2 space-y-2">
+                      {validationResult.certificates.map((cert, idx) => (
+                        <div
+                          key={idx}
+                          className="bg-slate-50 rounded p-3 border border-slate-200"
+                        >
+                          <p className="font-medium text-slate-700 mb-1">
+                            Certificate {idx + 1}
+                          </p>
+                          <div className="space-y-1 text-slate-600">
+                            <p className="break-all">
+                              <span className="font-medium">Subject:</span> {cert.subject}
+                            </p>
+                            <p className="break-all">
+                              <span className="font-medium">Issuer:</span> {cert.issuer}
+                            </p>
+                            <p>
+                              <span className="font-medium">Valid:</span>{" "}
+                              {new Date(cert.notBefore).toLocaleDateString()} -{" "}
+                              {new Date(cert.notAfter).toLocaleDateString()}
+                            </p>
+                            {cert.dnsNames && cert.dnsNames.length > 0 && (
+                              <p>
+                                <span className="font-medium">DNS Names:</span>{" "}
+                                {cert.dnsNames.join(", ")}
+                              </p>
+                            )}
+                            <p className="break-all">
+                              <span className="font-medium">SHA256:</span>{" "}
+                              <span className="font-mono text-[10px]">
+                                {cert.sha256Fingerprint}
+                              </span>
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </details>
+                )}
+            </div>
+          )}
         </div>
 
         <div>

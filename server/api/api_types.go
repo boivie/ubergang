@@ -496,3 +496,24 @@ type ApiBootstrapConfigureResponse struct {
 type ApiBootstrapStatusResponse struct {
 	IsConfigured bool `json:"isConfigured"`
 }
+
+// backend_validate
+
+type ApiCertificate struct {
+	Subject            string   `json:"subject"`
+	Issuer             string   `json:"issuer"`
+	NotBefore          string   `json:"notBefore"`
+	NotAfter           string   `json:"notAfter"`
+	SerialNumber       string   `json:"serialNumber"`
+	DNSNames           []string `json:"dnsNames"`
+	SignatureAlgorithm string   `json:"signatureAlgorithm"`
+	SHA256Fingerprint  string   `json:"sha256Fingerprint"`
+}
+
+type ApiValidateBackendResponse struct {
+	Reachable        bool             `json:"reachable"`
+	TLS              bool             `json:"tls"`
+	ValidCertificate bool             `json:"validCertificate"`
+	Error            string           `json:"error,omitempty"`
+	Certificates     []ApiCertificate `json:"certificates,omitempty"`
+}

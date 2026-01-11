@@ -42,6 +42,7 @@ import {
   ApiBootstrapConfigureRequest,
   ApiBootstrapConfigureResponse,
   ApiBootstrapStatusResponse,
+  ApiValidateBackendResponse,
 } from "./api_types";
 
 export interface ApiService {
@@ -92,6 +93,8 @@ export interface ApiService {
   ): Promise<ApiUpdateBackendResponse>;
 
   DeleteBackend(fqdn: string): Promise<void>;
+
+  ValidateBackend(fqdn: string): Promise<ApiValidateBackendResponse>;
 
   DeleteCredential(id: string): Promise<void>;
 
@@ -345,6 +348,22 @@ export const realApiService: ApiService = {
     if (!res.ok) {
       throw new Error(`Failed to delete backend: ${res.statusText}`);
     }
+  },
+
+  async ValidateBackend(
+    upstreamUrl: string,
+  ): Promise<ApiValidateBackendResponse> {
+    const res = await fetch(
+      `/api/backend/validate?upstream_url=${encodeURIComponent(upstreamUrl)}`,
+      {
+        method: "post",
+        headers: { Accept: "application/json" },
+      },
+    );
+    if (!res.ok) {
+      throw new Error(`Failed to validate backend: ${res.statusText}`);
+    }
+    return res.json();
   },
 
   async DeleteCredential(id: string): Promise<void> {
