@@ -432,3 +432,21 @@ export interface ApiBootstrapConfigureResponse {
 export interface ApiBootstrapStatusResponse {
   isConfigured: boolean;
 }
+
+export interface ApiCertificate {
+  subject: string;
+  issuer: string;
+  notBefore: string;
+  notAfter: string;
+  serialNumber: string;
+  dnsNames: string[];
+  signatureAlgorithm: string;
+  sha256Fingerprint: string;
+}
+
+export interface ApiValidateBackendResponse {
+  reachable: boolean;
+  tls: boolean;
+  error?: string;
+  certificates?: ApiCertificate[];
+}

@@ -54,6 +54,7 @@ func (a *ApiModule) RegisterEndpoints(r *mux.Router) {
 	r.Host(a.config.AdminFqdn).Methods("POST").Path("/api/ssh-key/{id}").HandlerFunc(a.handleUpdateSshKey)
 	r.Host(a.config.AdminFqdn).Methods("POST").Path("/api/ssh-key").HandlerFunc(a.handleSshKeyCreate)
 	// Backends
+	r.Host(a.config.AdminFqdn).Methods("POST").Path("/api/backend/validate").HandlerFunc(a.handleBackendValidate)
 	r.Host(a.config.AdminFqdn).Methods("POST").Path("/api/backend/{fqdn}").HandlerFunc(a.handleBackendUpdate)
 	r.Host(a.config.AdminFqdn).Methods("GET").Path("/api/backend/{fqdn}").HandlerFunc(a.handleBackendGet)
 	r.Host(a.config.AdminFqdn).Methods("GET").Path("/api/backend").HandlerFunc(a.handleBackendList)
