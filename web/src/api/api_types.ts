@@ -114,6 +114,7 @@ export interface ApiBackend {
   updatedAt: string;
   accessLevel: string;
   jsScript: string;
+  pinnedCertificateFingerprint: string;
 }
 
 export interface ApiUpdateBackendRequest {
@@ -121,6 +122,7 @@ export interface ApiUpdateBackendRequest {
   headers?: ApiBackendHeader[];
   accessLevel?: string;
   jsScript?: string;
+  pinnedCertificateFingerprint?: string;
 }
 
 export type ApiUpdateBackendResponse = Record<string, never>;

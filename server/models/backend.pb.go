@@ -181,8 +181,12 @@ type Backend struct {
 	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	AccessLevel   AccessLevel            `protobuf:"varint,6,opt,name=access_level,json=accessLevel,proto3,enum=models.AccessLevel" json:"access_level,omitempty"`
 	ScriptHandler *ScriptHandler         `protobuf:"bytes,7,opt,name=script_handler,json=scriptHandler,proto3" json:"script_handler,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	// If set, specifies the fingerprint of one of the certificates in the
+	// certificate chain. If this is not set, it expects a system trusted
+	// certificate. Only used backends using TLS, not HTTP.
+	PinnedCertificateFingerprint string `protobuf:"bytes,8,opt,name=pinned_certificate_fingerprint,json=pinnedCertificateFingerprint,proto3" json:"pinned_certificate_fingerprint,omitempty"`
+	unknownFields                protoimpl.UnknownFields
+	sizeCache                    protoimpl.SizeCache
 }
 
 func (x *Backend) Reset() {
@@ -264,6 +268,13 @@ func (x *Backend) GetScriptHandler() *ScriptHandler {
 	return nil
 }
 
+func (x *Backend) GetPinnedCertificateFingerprint() string {
+	if x != nil {
+		return x.PinnedCertificateFingerprint
+	}
+	return ""
+}
+
 var File_protos_backend_proto protoreflect.FileDescriptor
 
 const file_protos_backend_proto_rawDesc = "" +
@@ -273,7 +284,7 @@ const file_protos_backend_proto_rawDesc = "" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value\",\n" +
 	"\rScriptHandler\x12\x1b\n" +
-	"\tjs_script\x18\x01 \x01(\tR\bjsScript\"\xd6\x02\n" +
+	"\tjs_script\x18\x01 \x01(\tR\bjsScript\"\x9c\x03\n" +
 	"\aBackend\x12\x12\n" +
 	"\x04fqdn\x18\x01 \x01(\tR\x04fqdn\x12!\n" +
 	"\fupstream_url\x18\x02 \x01(\tR\vupstreamUrl\x12(\n" +
@@ -283,7 +294,8 @@ const file_protos_backend_proto_rawDesc = "" +
 	"\n" +
 	"updated_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x126\n" +
 	"\faccess_level\x18\x06 \x01(\x0e2\x13.models.AccessLevelR\vaccessLevel\x12<\n" +
-	"\x0escript_handler\x18\a \x01(\v2\x15.models.ScriptHandlerR\rscriptHandler*C\n" +
+	"\x0escript_handler\x18\a \x01(\v2\x15.models.ScriptHandlerR\rscriptHandler\x12D\n" +
+	"\x1epinned_certificate_fingerprint\x18\b \x01(\tR\x1cpinnedCertificateFingerprint*C\n" +
 	"\vAccessLevel\x12\x1c\n" +
 	"\x18ACCESS_LEVEL_UNSPECIFIED\x10\x00\x12\n" +
 	"\n" +

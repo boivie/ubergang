@@ -41,13 +41,14 @@ func ToBackend(b *models.Backend) api.ApiBackend {
 	}
 
 	return api.ApiBackend{
-		Fqdn:        b.Fqdn,
-		UpstreamUrl: b.UpstreamUrl,
-		Headers:     headers,
-		CreatedAt:   createdAt,
-		UpdatedAt:   updatedAt,
-		AccessLevel: accessLevel,
-		JsScript:    jsScript,
+		Fqdn:                         b.Fqdn,
+		UpstreamUrl:                  b.UpstreamUrl,
+		Headers:                      headers,
+		CreatedAt:                    createdAt,
+		UpdatedAt:                    updatedAt,
+		AccessLevel:                  accessLevel,
+		JsScript:                     jsScript,
+		PinnedCertificateFingerprint: b.PinnedCertificateFingerprint,
 	}
 }
 
