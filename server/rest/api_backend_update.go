@@ -73,6 +73,10 @@ func (s *ApiModule) handleBackendUpdate(w http.ResponseWriter, r *http.Request) 
 			old.ScriptHandler = nil
 		}
 
+		if req.PinnedCertificateFingerprint != nil {
+			old.PinnedCertificateFingerprint = *req.PinnedCertificateFingerprint
+		}
+
 		old.UpdatedAt = timestamppb.New(now)
 		return old, nil
 	})

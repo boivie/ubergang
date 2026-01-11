@@ -233,4 +233,38 @@ func TestUpdateBackend(t *testing.T) {
 			t.Errorf("Expected jsScript to be empty after clearing, got %q", backends[0].JsScript)
 		}
 	})
+
+	t.Run("set pinned certificate", func(t *testing.T) {
+		f, cookie := setupBackendTest(t)
+		rr := f.CreateBackend(cookie, &api.ApiBackend{
+			Fqdn:        "test.example.com",
+			UpstreamUrl: "http://localhost:8080",
+		})
+		if rr.Code != http.StatusOK {
+			t.Fatalf("pre-condition: create backend failed with status %d: %s", rr.Code, rr.Body.String())
+		}
+
+		// Verify initially no pinnedCertificateFingerprint
+		backends := f.ListBackends(cookie)
+		if backends[0].PinnedCertificateFingerprint != "" {
+			t.Errorf("Expected pinnedCertificateFingerprint to be empty initially, got %q", backends[0].PinnedCertificateFingerprint)
+		}
+
+		// Update with a fingerprint
+		fingerprint := "5891b5b522d5df086d0ff0b110fbd9d21bb4fc7163af34d08286a2e846f6be03"
+		req := &api.ApiUpdateBackendRequest{
+			PinnedCertificateFingerprint: &fingerprint,
+		}
+		resp := &api.ApiUpdateBackendResponse{}
+		rr = f.request("POST", "/api/backend/test.example.com", req, cookie, resp)
+
+		if rr.Code != http.StatusOK {
+			t.Fatalf("request failed with status %d: %s", rr.Code, rr.Body.String())
+		}
+
+		backends = f.ListBackends(cookie)
+		if backends[0].PinnedCertificateFingerprint != fingerprint {
+			t.Errorf("Expected pinnedCertificateFingerprint to be %q, got %q", fingerprint, backends[0].PinnedCertificateFingerprint)
+		}
+	})
 }

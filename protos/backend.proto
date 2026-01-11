@@ -32,4 +32,8 @@ message Backend {
   google.protobuf.Timestamp updated_at = 5;
   AccessLevel access_level = 6;
   ScriptHandler script_handler = 7;
+  // If set, specifies the fingerprint of one of the certificates in the
+  // certificate chain. If this is not set, it expects a system trusted
+  // certificate. Only used backends using TLS, not HTTP.
+  string pinned_certificate_fingerprint = 8;
 }

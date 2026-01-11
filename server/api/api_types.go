@@ -130,15 +130,17 @@ type ApiBackend struct {
 	CreatedAt   string             `json:"createdAt"`
 	UpdatedAt   string             `json:"updatedAt"`
 	// Can be NORMAL or PUBLIC.
-	AccessLevel string `json:"accessLevel"`
-	JsScript    string `json:"jsScript"`
+	AccessLevel                  string `json:"accessLevel"`
+	JsScript                     string `json:"jsScript"`
+	PinnedCertificateFingerprint string `json:"pinnedCertificateFingerprint"`
 }
 
 type ApiUpdateBackendRequest struct {
-	UpstreamUrl *string             `json:"upstreamUrl"`
-	Headers     *[]ApiBackendHeader `json:"headers"`
-	AccessLevel *string             `json:"accessLevel"`
-	JsScript    string              `json:"jsScript"`
+	UpstreamUrl                  *string             `json:"upstreamUrl"`
+	Headers                      *[]ApiBackendHeader `json:"headers"`
+	AccessLevel                  *string             `json:"accessLevel"`
+	JsScript                     string              `json:"jsScript"`
+	PinnedCertificateFingerprint *string             `json:"pinnedCertificateFingerprint"`
 }
 
 type ApiUpdateBackendResponse struct {
