@@ -34,6 +34,8 @@ export async function EditBackendAction(
   const headersStr = payload.headers as string;
   const accessLevel = payload.accessLevel as string;
   const jsScript = payload.jsScript as string;
+  const pinnedCertificateFingerprint =
+    (payload.pinnedCertificateFingerprint as string) || "";
   const headers = headersStr
     .split("\n")
     .filter((h) => h.includes("="))
@@ -47,6 +49,7 @@ export async function EditBackendAction(
     headers,
     accessLevel,
     jsScript,
+    pinnedCertificateFingerprint,
   });
   return redirect("/backends/");
 }
@@ -79,6 +82,11 @@ export default function BackendsEdit() {
   );
   const [jsScript, setJsScript] = useState(backend.jsScript || "");
   const [isScriptExpanded, setIsScriptExpanded] = useState(!!backend.jsScript);
+  const [pinnedCertificateFingerprint, setPinnedCertificateFingerprint] =
+    useState(backend.pinnedCertificateFingerprint || "");
+  const [isPinnedCertExpanded, setIsPinnedCertExpanded] = useState(
+    !!backend.pinnedCertificateFingerprint,
+  );
   const [isValidating, setIsValidating] = useState(false);
   const [validationResult, setValidationResult] =
     useState<ApiValidateBackendResponse | null>(null);
@@ -179,6 +187,11 @@ export default function BackendsEdit() {
         <input type="hidden" name="headers" value={headersStr} />
         <input type="hidden" name="accessLevel" value={accessLevel} />
         <input type="hidden" name="jsScript" value={jsScript} />
+        <input
+          type="hidden"
+          name="pinnedCertificateFingerprint"
+          value={pinnedCertificateFingerprint}
+        />
 
         <div>
           <label
@@ -205,7 +218,10 @@ export default function BackendsEdit() {
             />
             {isValidating && (
               <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                <IconLoader2 size={20} className="text-slate-400 animate-spin" />
+                <IconLoader2
+                  size={20}
+                  className="text-slate-400 animate-spin"
+                />
               </div>
             )}
             {!isValidating && validationResult && (
@@ -227,14 +243,19 @@ export default function BackendsEdit() {
             <div className="mt-2">
               <p className="text-xs text-emerald-700 flex items-center gap-1">
                 <IconCheck size={14} />
-                Backend is reachable via {validationResult.tls ? "HTTPS" : "HTTP"}
+                Backend is reachable via{" "}
+                {validationResult.tls ? "HTTPS" : "HTTP"}
               </p>
               {validationResult.certificates &&
                 validationResult.certificates.length > 0 && (
                   <details className="mt-2 text-xs">
                     <summary className="cursor-pointer text-slate-600 hover:text-slate-800 font-medium">
-                      View Certificate Details ({validationResult.certificates.length}{" "}
-                      certificate{validationResult.certificates.length > 1 ? "s" : ""})
+                      Certificate Details (
+                      {validationResult.certificates.length}{" "}
+                      {validationResult.certificates.length > 1
+                        ? "certificates"
+                        : "certificate"}
+                      )
                     </summary>
                     <div className="mt-2 space-y-2">
                       {validationResult.certificates.map((cert, idx) => (
@@ -242,15 +263,32 @@ export default function BackendsEdit() {
                           key={idx}
                           className="bg-slate-50 rounded p-3 border border-slate-200"
                         >
-                          <p className="font-medium text-slate-700 mb-1">
-                            Certificate {idx + 1}
-                          </p>
+                          <div className="flex justify-between items-start mb-2">
+                            <p className="font-medium text-slate-700">
+                              Certificate {idx + 1}
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setPinnedCertificateFingerprint(
+                                  cert.sha256Fingerprint,
+                                );
+                                setIsPinnedCertExpanded(true);
+                              }}
+                              className="text-[10px] px-2 py-1 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors whitespace-nowrap"
+                              title="Pin this certificate"
+                            >
+                              Pin this cert
+                            </button>
+                          </div>
                           <div className="space-y-1 text-slate-600">
                             <p className="break-all">
-                              <span className="font-medium">Subject:</span> {cert.subject}
+                              <span className="font-medium">Subject:</span>{" "}
+                              {cert.subject}
                             </p>
                             <p className="break-all">
-                              <span className="font-medium">Issuer:</span> {cert.issuer}
+                              <span className="font-medium">Issuer:</span>{" "}
+                              {cert.issuer}
                             </p>
                             <p>
                               <span className="font-medium">Valid:</span>{" "}
@@ -275,6 +313,64 @@ export default function BackendsEdit() {
                     </div>
                   </details>
                 )}
+            </div>
+          )}
+        </div>
+
+        <div className="border border-slate-200 rounded-lg overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setIsPinnedCertExpanded(!isPinnedCertExpanded)}
+            className="w-full px-4 py-3 flex items-center justify-between text-left bg-slate-50 hover:bg-slate-100 transition-colors"
+          >
+            <div className="flex-1 min-w-0">
+              <span className="text-sm font-medium text-slate-700">
+                Certificate Pinning
+              </span>
+              <p className="text-xs text-slate-500 mt-0.5">
+                {pinnedCertificateFingerprint ? (
+                  <span className="font-mono truncate block">
+                    Pinned: {pinnedCertificateFingerprint}
+                  </span>
+                ) : (
+                  "Optional: Pin a specific TLS certificate"
+                )}
+              </p>
+            </div>
+            <IconChevronDown
+              size={20}
+              className={`text-slate-500 transition-transform flex-shrink-0 ml-2 ${
+                isPinnedCertExpanded ? "rotate-180" : ""
+              }`}
+            />
+          </button>
+          {isPinnedCertExpanded && (
+            <div className="p-4 bg-white">
+              <input
+                id="pinnedCertificateFingerprint"
+                type="text"
+                className="block w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md shadow-xs font-mono text-xs appearance-none focus:outline-hidden focus:ring-emerald-500 focus:border-emerald-500"
+                value={pinnedCertificateFingerprint}
+                onChange={(e) =>
+                  setPinnedCertificateFingerprint(e.target.value.trim())
+                }
+                placeholder="SHA256 fingerprint (leave empty to use system root CAs)"
+              />
+              <div className="mt-2 text-xs text-slate-600 space-y-1">
+                <p>
+                  Pin a specific certificate by SHA256 fingerprint for
+                  additional security. Only applies to HTTPS backends.
+                </p>
+                {pinnedCertificateFingerprint && (
+                  <button
+                    type="button"
+                    onClick={() => setPinnedCertificateFingerprint("")}
+                    className="text-orange-600 hover:text-orange-700 font-medium"
+                  >
+                    Clear pinned certificate
+                  </button>
+                )}
+              </div>
             </div>
           )}
         </div>
