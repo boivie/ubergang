@@ -342,8 +342,8 @@ func (s *ApiModule) handleProxyTestStatus(w http.ResponseWriter, r *http.Request
 func (s *ApiModule) handleProxyTestCookies(w http.ResponseWriter, r *http.Request) {
 	// Set two distinct cookies.
 	// Calling SetCookie multiple times generates multiple "Set-Cookie" headers.
-	http.SetCookie(w, &http.Cookie{Name: "test-a", Value: "1", Path: "/"})
-	http.SetCookie(w, &http.Cookie{Name: "test-b", Value: "2", Path: "/"})
+	http.SetCookie(w, &http.Cookie{Name: "test-a", Value: "1", Path: "/", Secure: true})
+	http.SetCookie(w, &http.Cookie{Name: "test-b", Value: "2", Path: "/", Secure: true})
 
 	response := map[string]interface{}{
 		"cookiesSent": []string{"test-a=1", "test-b=2"},
