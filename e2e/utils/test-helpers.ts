@@ -21,11 +21,11 @@ export class TestHelper {
   }
 
   async expectToBeOnBackends() {
-    await expect(this.page).toHaveURL("/backends/");
+    await expect(this.page).toHaveURL(/\/backends\/?$/);
   }
 
   async expectToBeOnUsers() {
-    await expect(this.page).toHaveURL("/users/");
+    await expect(this.page).toHaveURL(/\/users\/?$/);
   }
 
   async takeScreenshotOnFailure(testName: string) {

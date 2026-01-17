@@ -168,7 +168,6 @@ test.describe("Backend Management Tests", () => {
       await dialog.getByRole("button", { name: "Remove" }).click();
 
       // The page should redirect and the item should be gone
-      await expect(page).toHaveURL("/backends/");
       await testHelper.expectToBeOnBackends();
       await expect(backendItem).not.toBeVisible();
     });

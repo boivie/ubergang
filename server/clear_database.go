@@ -1,13 +1,14 @@
 package server
 
 import (
+	"boivie/ubergang/server/db"
 	"fmt"
 	"log"
 
 	"github.com/charmbracelet/huh"
 )
 
-func (s *Server) ClearDatabase() {
+func ClearDatabase(db *db.DB) {
 	var confirm bool
 
 	err := huh.NewConfirm().
@@ -21,7 +22,7 @@ func (s *Server) ClearDatabase() {
 	}
 
 	if confirm {
-		if err := s.db.ClearDatabase(); err != nil {
+		if err := db.ClearDatabase(); err != nil {
 			log.Fatalf("Failed to clear database: %v", err)
 		}
 		fmt.Println("Database cleared.")

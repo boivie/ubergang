@@ -133,7 +133,6 @@ test.describe("User Management Tests", () => {
 
       await dialog.getByRole("button", { name: "Remove" }).click();
 
-      await expect(page).toHaveURL("/users/");
       await testHelper.expectToBeOnUsers();
       await expect(userItem).not.toBeVisible();
     });

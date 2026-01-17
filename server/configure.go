@@ -1,6 +1,7 @@
 package server
 
 import (
+	"boivie/ubergang/server/db"
 	"boivie/ubergang/server/models"
 	"fmt"
 	"log"
@@ -13,8 +14,8 @@ func (s *Server) IsConfigured() bool {
 	return cfg != nil && cfg.Email != "" && cfg.SiteFqdn != "" && cfg.AdminFqdn != ""
 }
 
-func (s *Server) Configure() {
-	config, err := s.db.GetConfiguration()
+func Configure(db *db.DB) {
+	config, err := db.GetConfiguration()
 	if err != nil {
 		config = &models.Configuration{
 			Email:     "",
@@ -59,7 +60,7 @@ func (s *Server) Configure() {
 
 	adminFqdn := "account." + siteFqdn
 
-	if err := s.db.UpdateConfiguration(func(old *models.Configuration) (*models.Configuration, error) {
+	if err := db.UpdateConfiguration(func(old *models.Configuration) (*models.Configuration, error) {
 		if old == nil {
 			old = &models.Configuration{}
 		}

@@ -34,12 +34,14 @@ export default defineConfig({
     },
   ],
 
-  webServer: [
-    {
-      command: "cd ../web && npm run dev",
-      url: "http://localhost:5173",
-      reuseExistingServer: !process.env.CI,
-      timeout: 12 * 1000,
-    },
-  ],
+  webServer: process.env.SKIP_FRONTEND_DEV_SERVER
+    ? undefined
+    : [
+        {
+          command: "cd ../web && npm run dev",
+          url: "http://localhost:5173",
+          reuseExistingServer: !process.env.CI,
+          timeout: 12 * 1000,
+        },
+      ],
 });

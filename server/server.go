@@ -87,15 +87,9 @@ type Server struct {
 	mqttPublisher  mqtt.MQTTPublisher
 }
 
-func NewServer(dbFile string, assets *embed.FS) *Server {
+func NewServer(db *db.DB, assets *embed.FS) *Server {
 	log := uglog.NewLogger(uglog.Fields{})
 	log.Debug("Debug logging enabled")
-	log.Infof("Using database at %s", dbFile)
-	db, err := db.New(log, dbFile)
-	if err != nil {
-		log.Fatalf("Failed to load database: %v", err)
-		os.Exit(1)
-	}
 
 	config, err := db.GetConfiguration()
 	if err != nil {
@@ -111,7 +105,9 @@ func NewServer(dbFile string, assets *embed.FS) *Server {
 	// Check if server is configured
 	isConfigured := config.Email != "" && config.SiteFqdn != "" && config.AdminFqdn != ""
 
-	if !isConfigured {
+	log.Infof("In test mode: %v, IsConfigured: %v", config.IsInTestMode, isConfigured)
+
+	if !config.IsInTestMode && !isConfigured {
 		// BOOTSTRAP MODE: Use self-signed certificate
 		log.Infof("Server not configured - entering bootstrap mode with self-signed certificate")
 
