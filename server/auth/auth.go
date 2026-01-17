@@ -21,7 +21,7 @@ func New(log *log.Log, db *db.DB) *Auth {
 	return &Auth{log, db}
 }
 
-func (s *Auth) CreateUser(email string, displayName string, admin bool, allowedHosts []string) (user *models.User, pollId string, err error) {
+func MakeUser(db *db.DB, email string, displayName string, admin bool, allowedHosts []string) (user *models.User, pollId string, err error) {
 	pollId = common.MakeSigninRequestToken()
 	userId := common.MakeRandomID()
 
@@ -40,14 +40,22 @@ func (s *Auth) CreateUser(email string, displayName string, admin bool, allowedH
 		},
 	}
 
-	err = s.db.UpdateUser(user.Id, func(old *models.User) (*models.User, error) {
+	err = db.UpdateUser(user.Id, func(old *models.User) (*models.User, error) {
 		if old != nil {
 			return nil, errors.New("user already exists")
 		}
 		return user, nil
 	})
-	s.log.Infof("Created user %s with signin token %s", user.Email, pollId)
 
+	return
+}
+
+func (s *Auth) CreateUser(email string, displayName string, admin bool, allowedHosts []string) (user *models.User, pollId string, err error) {
+	user, pollId, err = MakeUser(s.db, email, displayName, admin, allowedHosts)
+	if err != nil {
+		return
+	}
+	s.log.Infof("Created user %s with signin token %s", user.Email, pollId)
 	return
 }
 

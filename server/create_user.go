@@ -1,13 +1,15 @@
 package server
 
 import (
+	"boivie/ubergang/server/auth"
+	"boivie/ubergang/server/db"
 	"fmt"
 	"log"
 
 	"github.com/charmbracelet/huh"
 )
 
-func (s *Server) CreateAccount() {
+func CreateAccount(db *db.DB) {
 	var email string
 	var admin bool
 
@@ -41,10 +43,15 @@ func (s *Server) CreateAccount() {
 		return
 	}
 
-	user, token, err := s.auth.CreateUser(email, email, admin, nil)
+	user, token, err := auth.MakeUser(db, email, email, admin, nil)
 	if err != nil {
 		log.Fatalf("Error creating user: %v", err)
 	}
 
-	fmt.Printf("Success! %s has been created: https://%s/signin/%s\n", user.Email, s.config.AdminFqdn, token)
+	config, err := db.GetConfiguration()
+	if err != nil {
+		log.Fatalf("Error creating user: %v", err)
+	}
+
+	fmt.Printf("Success! %s has been created: https://%s/signin/%s\n", user.Email, config.AdminFqdn, token)
 }

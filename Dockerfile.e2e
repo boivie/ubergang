@@ -1,0 +1,38 @@
+# --- Stage 1: Frontend Build ---
+FROM --platform=$BUILDPLATFORM node:25-slim AS nodebuilder
+WORKDIR /src/web
+COPY web/package.json web/package-lock.json ./
+RUN npm ci
+COPY web/ ./
+RUN npm run build
+
+# --- Stage 2: Backend Build ---
+FROM --platform=$BUILDPLATFORM golang:1.25-alpine AS builder
+ARG TARGETOS TARGETARCH
+WORKDIR /src
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+COPY --from=nodebuilder /src/web/dist/ /src/web/dist/
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
+    go build -ldflags="-w -s" -o /ubergang .
+
+# --- Stage 3: Test Runner ---
+FROM mcr.microsoft.com/playwright:v1.57.0-jammy
+
+# Install netcat for the wait script
+RUN apt-get update && apt-get install -y netcat-openbsd && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /e2e
+
+# Copy the binary from builder
+COPY --from=builder /ubergang /usr/local/bin/ubergang
+
+# Copy e2e tests
+COPY e2e/package.json e2e/package-lock.json ./
+RUN npm ci
+
+COPY e2e/ ./
+RUN chmod +x run_tests.sh
+
+ENTRYPOINT ["./run_tests.sh"]
