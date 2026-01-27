@@ -14,8 +14,8 @@
     "install-browsers": "playwright install"
   },
   "devDependencies": {
-    "@playwright/test": "^1.57.0",
-    "@types/node": "^25.0.5",
+    "@playwright/test": "^1.58.0",
+    "@types/node": "^25.0.10",
     "typescript": "^5.9.3"
   }
 }
