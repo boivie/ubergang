@@ -21,7 +21,6 @@ var (
 var flgDb = flag.String("db", "ubergang.db", "Database file")
 var flgConfigure = flag.Bool("configure", false, "Configure server")
 var flgAccount = flag.Bool("account", false, "Create account")
-var flgClearDb = flag.Bool("clear-db", false, "Clear database (DANGER!)")
 var flgTestMode = flag.Bool("test-mode", false, "Test Mode (Only used in integration tests)")
 
 const ADMIN_HOST = "localhost:10443"
@@ -40,7 +39,7 @@ func main() {
 	}
 
 	if *flgTestMode {
-		if err := db.UpdateConfiguration(func(old *models.Configuration) (*models.Configuration, error) {
+		err := db.UpdateConfiguration(func(old *models.Configuration) (*models.Configuration, error) {
 			if old != nil && old.AdminFqdn != ADMIN_HOST {
 				fmt.Println("Test mode is restricted to integration tests. Aborting")
 				os.Exit(1)
@@ -54,7 +53,9 @@ func main() {
 			}
 
 			return config, nil
-		}); err != nil {
+		})
+
+		if err != nil {
 			fmt.Printf("Failed to update configuration: %v\n", err)
 			os.Exit(1)
 		}
@@ -66,10 +67,6 @@ func main() {
 	}
 	if *flgAccount {
 		server.CreateAccount(db)
-		return
-	}
-	if *flgClearDb {
-		server.ClearDatabase(db)
 		return
 	}
 
