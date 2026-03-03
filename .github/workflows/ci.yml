@@ -34,7 +34,7 @@ jobs:
       - name: Build
         run: npm run build
       - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: web-dist
           path: web/dist
@@ -87,7 +87,7 @@ jobs:
           go-version: "1.25.7"
           cache: true
       - name: Download Frontend Artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: web-dist
           path: web/dist
@@ -107,7 +107,7 @@ jobs:
           go-version: "1.25.7"
           cache: true
       - name: Download Frontend Artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: web-dist
           path: web/dist
@@ -159,7 +159,7 @@ jobs:
           go-version: "1.25.7"
           cache: true
       - name: Download Frontend Artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: web-dist
           path: web/dist
