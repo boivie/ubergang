@@ -158,14 +158,6 @@ func NewServer(db *db.DB, assets *embed.FS) *Server {
 				return nil
 			}
 
-			// When using wildcard certificates, allow any subdomain of SiteFqdn
-			if os.Getenv("GOOGLE_APPLICATION_CREDENTIALS") != "" && config.SiteFqdn != "" {
-				// Check if host is a subdomain of SiteFqdn or matches exactly
-				if host == config.SiteFqdn || strings.HasSuffix(host, "."+config.SiteFqdn) {
-					return nil
-				}
-			}
-
 			return fmt.Errorf("the hostname %s can't be found in the registered list of backends", host)
 		})
 	}
