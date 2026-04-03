@@ -1,6 +1,6 @@
 module boivie/ubergang
 
-go 1.25.7
+go 1.26.1
 
 require (
 	github.com/caddyserver/certmagic v0.25.1
