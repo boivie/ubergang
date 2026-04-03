@@ -3,13 +3,13 @@ module boivie/ubergang
 go 1.26.1
 
 require (
-	github.com/caddyserver/certmagic v0.25.1
+	github.com/caddyserver/certmagic v0.25.2
 	github.com/carlmjohnson/requests v0.25.1
 	github.com/charmbracelet/huh v0.8.0
-	github.com/descope/virtualwebauthn v1.0.3
+	github.com/descope/virtualwebauthn v1.0.4
 	github.com/dop251/goja v0.0.0-20251201205617-2bb4c724c0f9
 	github.com/gliderlabs/ssh v0.3.8
-	github.com/go-webauthn/webauthn v0.15.0
+	github.com/go-webauthn/webauthn v0.16.2
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/mux v1.8.1
@@ -18,7 +18,7 @@ require (
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.23.2
-	github.com/samber/lo v1.52.0
+	github.com/samber/lo v1.53.0
 	github.com/sirupsen/logrus v1.9.4
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/spf13/pflag v1.0.10
@@ -26,7 +26,7 @@ require (
 	github.com/urfave/cli/v2 v2.27.7
 	github.com/urfave/negroni v1.0.0
 	go.etcd.io/bbolt v1.4.3
-	golang.org/x/crypto v0.48.0
+	golang.org/x/crypto v0.49.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 
@@ -34,7 +34,7 @@ require (
 	cloud.google.com/go/auth v0.18.0 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.2.8 // indirect
 	cloud.google.com/go/compute/metadata v0.9.0 // indirect
-	github.com/caddyserver/zerossl v0.1.4 // indirect
+	github.com/caddyserver/zerossl v0.1.5 // indirect
 	github.com/clipperhouse/displaywidth v0.6.2 // indirect
 	github.com/clipperhouse/stringish v0.1.1 // indirect
 	github.com/clipperhouse/uax29/v2 v2.3.0 // indirect
@@ -43,15 +43,17 @@ require (
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible // indirect
-	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
+	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/google/pprof v0.0.0-20230207041349-798e818bf904 // indirect
 	github.com/google/s2a-go v0.1.9 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.7 // indirect
 	github.com/googleapis/gax-go/v2 v2.16.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/libdns/libdns v1.1.1 // indirect
-	github.com/mholt/acmez/v3 v3.1.4 // indirect
-	github.com/miekg/dns v1.1.69 // indirect
+	github.com/mholt/acmez/v3 v3.1.6 // indirect
+	github.com/miekg/dns v1.1.72 // indirect
+	github.com/philhofer/fwd v1.2.0 // indirect
+	github.com/tinylib/msgp v1.6.3 // indirect
 	github.com/zeebo/blake3 v0.2.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.64.0 // indirect
@@ -62,9 +64,9 @@ require (
 	go.uber.org/zap v1.27.1 // indirect
 	go.uber.org/zap/exp v0.3.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.3 // indirect
-	golang.org/x/mod v0.32.0 // indirect
+	golang.org/x/mod v0.33.0 // indirect
 	golang.org/x/oauth2 v0.34.0 // indirect
-	golang.org/x/tools v0.41.0 // indirect
+	golang.org/x/tools v0.42.0 // indirect
 	google.golang.org/api v0.258.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20251222181119-0a764e51fe1b // indirect
 	google.golang.org/grpc v1.78.0 // indirect
@@ -80,9 +82,9 @@ require (
 	github.com/prometheus/procfs v0.19.2 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/xrash/smetrics v0.0.0-20250705151800-55b8f293f342 // indirect
-	golang.org/x/net v0.49.0 // indirect
-	golang.org/x/sys v0.41.0 // indirect
-	golang.org/x/text v0.34.0 // indirect
+	golang.org/x/net v0.51.0 // indirect
+	golang.org/x/sys v0.42.0 // indirect
+	golang.org/x/text v0.35.0 // indirect
 	google.golang.org/protobuf v1.36.11
 )
 
@@ -102,8 +104,8 @@ require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/eclipse/paho.mqtt.golang v1.5.1
 	github.com/erikgeiser/coninput v0.0.0-20211004153227-1c3628e74d0f // indirect
-	github.com/fxamacker/cbor/v2 v2.9.0 // indirect
-	github.com/go-webauthn/x v0.1.27 // indirect
+	github.com/fxamacker/cbor/v2 v2.9.1 // indirect
+	github.com/go-webauthn/x v0.2.2 // indirect
 	github.com/google/go-tpm v0.9.8 // indirect
 	github.com/lucasb-eyer/go-colorful v1.3.0 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
@@ -118,6 +120,6 @@ require (
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
-	golang.org/x/sync v0.19.0 // indirect
+	golang.org/x/sync v0.20.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1
 )
