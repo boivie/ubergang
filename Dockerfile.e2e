@@ -18,7 +18,7 @@ RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
     go build -ldflags="-w -s" -o /ubergang .
 
 # --- Stage 3: Test Runner ---
-FROM mcr.microsoft.com/playwright:v1.58.0-jammy
+FROM mcr.microsoft.com/playwright:v1.59.1-jammy
 
 # Install netcat for the wait script
 RUN apt-get update && apt-get install -y netcat-openbsd && rm -rf /var/lib/apt/lists/*
