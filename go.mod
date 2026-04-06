@@ -5,7 +5,7 @@ go 1.26.1
 require (
 	github.com/caddyserver/certmagic v0.25.2
 	github.com/carlmjohnson/requests v0.25.1
-	github.com/charmbracelet/huh v0.8.0
+	github.com/charmbracelet/huh v1.0.0
 	github.com/descope/virtualwebauthn v1.0.4
 	github.com/dop251/goja v0.0.0-20251201205617-2bb4c724c0f9
 	github.com/gliderlabs/ssh v0.3.8
