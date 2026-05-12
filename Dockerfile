@@ -1,5 +1,5 @@
 # --- Stage 1: Frontend Build ---
-FROM --platform=$BUILDPLATFORM node:25-slim AS nodebuilder
+FROM --platform=$BUILDPLATFORM node:26-slim AS nodebuilder
 WORKDIR /src/web
 
 # Cache dependencies separately
@@ -11,7 +11,7 @@ COPY web/ ./
 RUN npm run build
 
 # --- Stage 2: Backend Build ---
-FROM --platform=$BUILDPLATFORM golang:1.26.1-alpine AS builder
+FROM --platform=$BUILDPLATFORM golang:1.26.3-alpine AS builder
 ARG TARGETOS TARGETARCH
 ARG BUILD_VERSION=latest
 
