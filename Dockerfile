@@ -1,5 +1,5 @@
 # --- Stage 1: Frontend Build ---
-FROM --platform=$BUILDPLATFORM node:25-slim AS nodebuilder
+FROM --platform=$BUILDPLATFORM node:26-slim AS nodebuilder
 WORKDIR /src/web
 
 # Cache dependencies separately
@@ -11,7 +11,7 @@ COPY web/ ./
 RUN npm run build
 
 # --- Stage 2: Backend Build ---
-FROM --platform=$BUILDPLATFORM golang:1.26.1-alpine AS builder
+FROM --platform=$BUILDPLATFORM golang:1.26.4-alpine AS builder
 ARG TARGETOS TARGETARCH
 ARG BUILD_VERSION=latest
 
@@ -30,7 +30,7 @@ RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
     go build -ldflags="-w -s -X main.version=${BUILD_VERSION}" -o /ubergang .
 
 # --- Stage 3: Final Image ---
-FROM alpine:3.23 AS final
+FROM alpine:3.24 AS final
 
 LABEL maintainer="boivie"
 
