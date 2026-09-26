@@ -84,6 +84,10 @@ export default function Backends() {
                     </h4>
                     <p className="w-full truncate text-sm text-slate-500">
                       {b.upstreamUrl}
+                      {b.accessRules?.length > 0 &&
+                        ` · ${b.accessRules.length} access rule${
+                          b.accessRules.length === 1 ? "" : "s"
+                        }`}
                     </p>
                   </div>
 

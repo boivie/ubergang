@@ -8,6 +8,18 @@ import (
 	"time"
 )
 
+func accessRuleActionToString(a models.AccessRuleAction) string {
+	switch a {
+	case models.AccessRuleAction_ACCESS_RULE_PUBLIC:
+		return "PUBLIC"
+	case models.AccessRuleAction_ACCESS_RULE_AUTHENTICATED:
+		return "AUTHENTICATED"
+	case models.AccessRuleAction_ACCESS_RULE_DENY:
+		return "DENY"
+	}
+	return ""
+}
+
 func ToBackend(b *models.Backend) api.ApiBackend {
 	headers := make([]api.ApiBackendHeader, 0)
 	for _, h := range b.Headers {
@@ -35,6 +47,14 @@ func ToBackend(b *models.Backend) api.ApiBackend {
 		accessLevel = "NORMAL"
 	}
 
+	accessRules := make([]api.ApiAccessRule, 0)
+	for _, r := range b.AccessRules {
+		accessRules = append(accessRules, api.ApiAccessRule{
+			Predicate: r.Predicate,
+			Action:    accessRuleActionToString(r.Action),
+		})
+	}
+
 	jsScript := ""
 	if b.ScriptHandler != nil {
 		jsScript = b.ScriptHandler.JsScript
@@ -47,6 +67,7 @@ func ToBackend(b *models.Backend) api.ApiBackend {
 		CreatedAt:                    createdAt,
 		UpdatedAt:                    updatedAt,
 		AccessLevel:                  accessLevel,
+		AccessRules:                  accessRules,
 		JsScript:                     jsScript,
 		PinnedCertificateFingerprint: b.PinnedCertificateFingerprint,
 	}

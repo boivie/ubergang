@@ -1,8 +1,10 @@
 package rest
 
 import (
+	"boivie/ubergang/server/access"
 	"boivie/ubergang/server/api"
 	"boivie/ubergang/server/models"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -10,6 +12,29 @@ import (
 	"github.com/gorilla/mux"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
+
+func parseAccessRules(rules []api.ApiAccessRule) ([]*models.AccessRule, error) {
+	out := make([]*models.AccessRule, 0, len(rules))
+	for i, r := range rules {
+		var action models.AccessRuleAction
+		switch r.Action {
+		case "PUBLIC":
+			action = models.AccessRuleAction_ACCESS_RULE_PUBLIC
+		case "AUTHENTICATED":
+			action = models.AccessRuleAction_ACCESS_RULE_AUTHENTICATED
+		case "DENY":
+			action = models.AccessRuleAction_ACCESS_RULE_DENY
+		default:
+			return nil, fmt.Errorf("rule %d: invalid action %q", i+1, r.Action)
+		}
+		out = append(out, &models.AccessRule{Predicate: r.Predicate, Action: action})
+	}
+	// Validate that all predicates compile. The access level doesn't matter here.
+	if _, err := access.Compile(out, models.AccessLevel_NORMAL); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
 
 func (s *ApiModule) handleBackendUpdate(w http.ResponseWriter, r *http.Request) {
 	user, _, err := s.session.GetAndValidate(w, r)
@@ -26,6 +51,15 @@ func (s *ApiModule) handleBackendUpdate(w http.ResponseWriter, r *http.Request) 
 	err = parseJsonRequest(w, r, &req)
 	if err != nil {
 		return
+	}
+
+	var accessRules []*models.AccessRule
+	if req.AccessRules != nil {
+		accessRules, err = parseAccessRules(*req.AccessRules)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 	}
 
 	fqdn := strings.ToLower(mux.Vars(r)["fqdn"])
@@ -63,6 +97,10 @@ func (s *ApiModule) handleBackendUpdate(w http.ResponseWriter, r *http.Request) 
 			default:
 				old.AccessLevel = models.AccessLevel_NORMAL
 			}
+		}
+
+		if req.AccessRules != nil {
+			old.AccessRules = accessRules
 		}
 
 		if req.JsScript != "" {

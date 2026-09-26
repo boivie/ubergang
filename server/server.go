@@ -22,6 +22,7 @@ import (
 
 	// Static assets
 
+	"boivie/ubergang/server/access"
 	"boivie/ubergang/server/auth"
 	"boivie/ubergang/server/backends"
 	"boivie/ubergang/server/db"
@@ -351,10 +352,10 @@ func AssetHandler(assets *embed.FS, root string) http.Handler {
 
 type localFrontend struct{}
 
-func (b *localFrontend) Type() string              { return "dev-frontend" }
-func (b *localFrontend) Host() string              { return "localhost" }
-func (b *localFrontend) Headers() []*models.Header { return []*models.Header{} }
-func (b *localFrontend) NeedsAuth() bool           { return false }
+func (b *localFrontend) Type() string                 { return "dev-frontend" }
+func (b *localFrontend) Host() string                 { return "localhost" }
+func (b *localFrontend) Headers() []*models.Header    { return []*models.Header{} }
+func (b *localFrontend) AccessPolicy() *access.Policy { return access.Fixed(access.Public) }
 func (b *localFrontend) URL() *url.URL {
 	u, _ := url.Parse("http://localhost:5173")
 	return u

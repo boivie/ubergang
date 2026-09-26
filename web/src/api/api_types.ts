@@ -106,6 +106,13 @@ export interface ApiBackendHeader {
   value: string;
 }
 
+export type ApiAccessRuleAction = "PUBLIC" | "AUTHENTICATED" | "DENY";
+
+export interface ApiAccessRule {
+  predicate: string;
+  action: ApiAccessRuleAction;
+}
+
 export interface ApiBackend {
   fqdn: string;
   upstreamUrl: string;
@@ -113,6 +120,7 @@ export interface ApiBackend {
   createdAt: string;
   updatedAt: string;
   accessLevel: string;
+  accessRules: ApiAccessRule[];
   jsScript: string;
   pinnedCertificateFingerprint: string;
 }
@@ -121,6 +129,7 @@ export interface ApiUpdateBackendRequest {
   upstreamUrl?: string;
   headers?: ApiBackendHeader[];
   accessLevel?: string;
+  accessRules?: ApiAccessRule[];
   jsScript?: string;
   pinnedCertificateFingerprint?: string;
 }

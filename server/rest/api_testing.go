@@ -77,6 +77,9 @@ func (f *Fixture) CreateBackend(cookie *http.Cookie, backend *api.ApiBackend) *h
 	if backend.AccessLevel != "" {
 		req.AccessLevel = &backend.AccessLevel
 	}
+	if backend.AccessRules != nil {
+		req.AccessRules = &backend.AccessRules
+	}
 	resp := &api.ApiUpdateBackendResponse{}
 	return f.request("POST", "/api/backend/"+backend.Fqdn, req, cookie, resp)
 }

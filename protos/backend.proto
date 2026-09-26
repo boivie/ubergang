@@ -19,6 +19,23 @@ enum AccessLevel {
   PUBLIC = 2;
 }
 
+enum AccessRuleAction {
+  // Not a valid action. Rejected when saving, and treated as DENY if found.
+  ACCESS_RULE_ACTION_UNSPECIFIED = 0;
+  // No authentication required.
+  ACCESS_RULE_PUBLIC = 1;
+  // Requires to be logged in, and backend included in user's access.
+  ACCESS_RULE_AUTHENTICATED = 2;
+  // The request is rejected.
+  ACCESS_RULE_DENY = 3;
+}
+
+message AccessRule {
+  // CEL expression evaluating to a bool. See server/access for variables.
+  string predicate = 1;
+  AccessRuleAction action = 2;
+}
+
 message ScriptHandler {
   string js_script = 1;
 }
@@ -36,4 +53,7 @@ message Backend {
   // certificate chain. If this is not set, it expects a system trusted
   // certificate. Only used backends using TLS, not HTTP.
   string pinned_certificate_fingerprint = 8;
+  // Evaluated in order; the first rule whose predicate matches decides the
+  // access. If no rule matches, `access_level` is used.
+  repeated AccessRule access_rules = 9;
 }

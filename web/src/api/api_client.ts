@@ -337,6 +337,10 @@ export const realApiService: ApiService = {
       },
       body: JSON.stringify(req),
     });
+    if (!res.ok) {
+      const message = (await res.text()).trim();
+      throw new Error(message || `Failed to update backend: ${res.statusText}`);
+    }
     return res.json();
   },
 
