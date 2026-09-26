@@ -75,6 +75,62 @@ func (AccessLevel) EnumDescriptor() ([]byte, []int) {
 	return file_protos_backend_proto_rawDescGZIP(), []int{0}
 }
 
+type AccessRuleAction int32
+
+const (
+	// Not a valid action. Rejected when saving, and treated as DENY if found.
+	AccessRuleAction_ACCESS_RULE_ACTION_UNSPECIFIED AccessRuleAction = 0
+	// No authentication required.
+	AccessRuleAction_ACCESS_RULE_PUBLIC AccessRuleAction = 1
+	// Requires to be logged in, and backend included in user's access.
+	AccessRuleAction_ACCESS_RULE_AUTHENTICATED AccessRuleAction = 2
+	// The request is rejected.
+	AccessRuleAction_ACCESS_RULE_DENY AccessRuleAction = 3
+)
+
+// Enum value maps for AccessRuleAction.
+var (
+	AccessRuleAction_name = map[int32]string{
+		0: "ACCESS_RULE_ACTION_UNSPECIFIED",
+		1: "ACCESS_RULE_PUBLIC",
+		2: "ACCESS_RULE_AUTHENTICATED",
+		3: "ACCESS_RULE_DENY",
+	}
+	AccessRuleAction_value = map[string]int32{
+		"ACCESS_RULE_ACTION_UNSPECIFIED": 0,
+		"ACCESS_RULE_PUBLIC":             1,
+		"ACCESS_RULE_AUTHENTICATED":      2,
+		"ACCESS_RULE_DENY":               3,
+	}
+)
+
+func (x AccessRuleAction) Enum() *AccessRuleAction {
+	p := new(AccessRuleAction)
+	*p = x
+	return p
+}
+
+func (x AccessRuleAction) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (AccessRuleAction) Descriptor() protoreflect.EnumDescriptor {
+	return file_protos_backend_proto_enumTypes[1].Descriptor()
+}
+
+func (AccessRuleAction) Type() protoreflect.EnumType {
+	return &file_protos_backend_proto_enumTypes[1]
+}
+
+func (x AccessRuleAction) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use AccessRuleAction.Descriptor instead.
+func (AccessRuleAction) EnumDescriptor() ([]byte, []int) {
+	return file_protos_backend_proto_rawDescGZIP(), []int{1}
+}
+
 type Header struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
@@ -127,6 +183,59 @@ func (x *Header) GetValue() string {
 	return ""
 }
 
+type AccessRule struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// CEL expression evaluating to a bool. See server/access for variables.
+	Predicate     string           `protobuf:"bytes,1,opt,name=predicate,proto3" json:"predicate,omitempty"`
+	Action        AccessRuleAction `protobuf:"varint,2,opt,name=action,proto3,enum=models.AccessRuleAction" json:"action,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AccessRule) Reset() {
+	*x = AccessRule{}
+	mi := &file_protos_backend_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AccessRule) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AccessRule) ProtoMessage() {}
+
+func (x *AccessRule) ProtoReflect() protoreflect.Message {
+	mi := &file_protos_backend_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AccessRule.ProtoReflect.Descriptor instead.
+func (*AccessRule) Descriptor() ([]byte, []int) {
+	return file_protos_backend_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *AccessRule) GetPredicate() string {
+	if x != nil {
+		return x.Predicate
+	}
+	return ""
+}
+
+func (x *AccessRule) GetAction() AccessRuleAction {
+	if x != nil {
+		return x.Action
+	}
+	return AccessRuleAction_ACCESS_RULE_ACTION_UNSPECIFIED
+}
+
 type ScriptHandler struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	JsScript      string                 `protobuf:"bytes,1,opt,name=js_script,json=jsScript,proto3" json:"js_script,omitempty"`
@@ -136,7 +245,7 @@ type ScriptHandler struct {
 
 func (x *ScriptHandler) Reset() {
 	*x = ScriptHandler{}
-	mi := &file_protos_backend_proto_msgTypes[1]
+	mi := &file_protos_backend_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -148,7 +257,7 @@ func (x *ScriptHandler) String() string {
 func (*ScriptHandler) ProtoMessage() {}
 
 func (x *ScriptHandler) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_backend_proto_msgTypes[1]
+	mi := &file_protos_backend_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -161,7 +270,7 @@ func (x *ScriptHandler) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ScriptHandler.ProtoReflect.Descriptor instead.
 func (*ScriptHandler) Descriptor() ([]byte, []int) {
-	return file_protos_backend_proto_rawDescGZIP(), []int{1}
+	return file_protos_backend_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *ScriptHandler) GetJsScript() string {
@@ -185,13 +294,16 @@ type Backend struct {
 	// certificate chain. If this is not set, it expects a system trusted
 	// certificate. Only used backends using TLS, not HTTP.
 	PinnedCertificateFingerprint string `protobuf:"bytes,8,opt,name=pinned_certificate_fingerprint,json=pinnedCertificateFingerprint,proto3" json:"pinned_certificate_fingerprint,omitempty"`
-	unknownFields                protoimpl.UnknownFields
-	sizeCache                    protoimpl.SizeCache
+	// Evaluated in order; the first rule whose predicate matches decides the
+	// access. If no rule matches, `access_level` is used.
+	AccessRules   []*AccessRule `protobuf:"bytes,9,rep,name=access_rules,json=accessRules,proto3" json:"access_rules,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Backend) Reset() {
 	*x = Backend{}
-	mi := &file_protos_backend_proto_msgTypes[2]
+	mi := &file_protos_backend_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -203,7 +315,7 @@ func (x *Backend) String() string {
 func (*Backend) ProtoMessage() {}
 
 func (x *Backend) ProtoReflect() protoreflect.Message {
-	mi := &file_protos_backend_proto_msgTypes[2]
+	mi := &file_protos_backend_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -216,7 +328,7 @@ func (x *Backend) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Backend.ProtoReflect.Descriptor instead.
 func (*Backend) Descriptor() ([]byte, []int) {
-	return file_protos_backend_proto_rawDescGZIP(), []int{2}
+	return file_protos_backend_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *Backend) GetFqdn() string {
@@ -275,6 +387,13 @@ func (x *Backend) GetPinnedCertificateFingerprint() string {
 	return ""
 }
 
+func (x *Backend) GetAccessRules() []*AccessRule {
+	if x != nil {
+		return x.AccessRules
+	}
+	return nil
+}
+
 var File_protos_backend_proto protoreflect.FileDescriptor
 
 const file_protos_backend_proto_rawDesc = "" +
@@ -282,9 +401,13 @@ const file_protos_backend_proto_rawDesc = "" +
 	"\x14protos/backend.proto\x12\x06models\x1a\x1fgoogle/protobuf/timestamp.proto\"2\n" +
 	"\x06Header\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value\",\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value\"\\\n" +
+	"\n" +
+	"AccessRule\x12\x1c\n" +
+	"\tpredicate\x18\x01 \x01(\tR\tpredicate\x120\n" +
+	"\x06action\x18\x02 \x01(\x0e2\x18.models.AccessRuleActionR\x06action\",\n" +
 	"\rScriptHandler\x12\x1b\n" +
-	"\tjs_script\x18\x01 \x01(\tR\bjsScript\"\x9c\x03\n" +
+	"\tjs_script\x18\x01 \x01(\tR\bjsScript\"\xd3\x03\n" +
 	"\aBackend\x12\x12\n" +
 	"\x04fqdn\x18\x01 \x01(\tR\x04fqdn\x12!\n" +
 	"\fupstream_url\x18\x02 \x01(\tR\vupstreamUrl\x12(\n" +
@@ -295,13 +418,19 @@ const file_protos_backend_proto_rawDesc = "" +
 	"updated_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x126\n" +
 	"\faccess_level\x18\x06 \x01(\x0e2\x13.models.AccessLevelR\vaccessLevel\x12<\n" +
 	"\x0escript_handler\x18\a \x01(\v2\x15.models.ScriptHandlerR\rscriptHandler\x12D\n" +
-	"\x1epinned_certificate_fingerprint\x18\b \x01(\tR\x1cpinnedCertificateFingerprint*C\n" +
+	"\x1epinned_certificate_fingerprint\x18\b \x01(\tR\x1cpinnedCertificateFingerprint\x125\n" +
+	"\faccess_rules\x18\t \x03(\v2\x12.models.AccessRuleR\vaccessRules*C\n" +
 	"\vAccessLevel\x12\x1c\n" +
 	"\x18ACCESS_LEVEL_UNSPECIFIED\x10\x00\x12\n" +
 	"\n" +
 	"\x06NORMAL\x10\x01\x12\n" +
 	"\n" +
-	"\x06PUBLIC\x10\x02B\x11Z\x0f./server/modelsb\x06proto3"
+	"\x06PUBLIC\x10\x02*\x83\x01\n" +
+	"\x10AccessRuleAction\x12\"\n" +
+	"\x1eACCESS_RULE_ACTION_UNSPECIFIED\x10\x00\x12\x16\n" +
+	"\x12ACCESS_RULE_PUBLIC\x10\x01\x12\x1d\n" +
+	"\x19ACCESS_RULE_AUTHENTICATED\x10\x02\x12\x14\n" +
+	"\x10ACCESS_RULE_DENY\x10\x03B\x11Z\x0f./server/modelsb\x06proto3"
 
 var (
 	file_protos_backend_proto_rawDescOnce sync.Once
@@ -315,26 +444,30 @@ func file_protos_backend_proto_rawDescGZIP() []byte {
 	return file_protos_backend_proto_rawDescData
 }
 
-var file_protos_backend_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_protos_backend_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_protos_backend_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_protos_backend_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_protos_backend_proto_goTypes = []any{
 	(AccessLevel)(0),              // 0: models.AccessLevel
-	(*Header)(nil),                // 1: models.Header
-	(*ScriptHandler)(nil),         // 2: models.ScriptHandler
-	(*Backend)(nil),               // 3: models.Backend
-	(*timestamppb.Timestamp)(nil), // 4: google.protobuf.Timestamp
+	(AccessRuleAction)(0),         // 1: models.AccessRuleAction
+	(*Header)(nil),                // 2: models.Header
+	(*AccessRule)(nil),            // 3: models.AccessRule
+	(*ScriptHandler)(nil),         // 4: models.ScriptHandler
+	(*Backend)(nil),               // 5: models.Backend
+	(*timestamppb.Timestamp)(nil), // 6: google.protobuf.Timestamp
 }
 var file_protos_backend_proto_depIdxs = []int32{
-	1, // 0: models.Backend.headers:type_name -> models.Header
-	4, // 1: models.Backend.created_at:type_name -> google.protobuf.Timestamp
-	4, // 2: models.Backend.updated_at:type_name -> google.protobuf.Timestamp
-	0, // 3: models.Backend.access_level:type_name -> models.AccessLevel
-	2, // 4: models.Backend.script_handler:type_name -> models.ScriptHandler
-	5, // [5:5] is the sub-list for method output_type
-	5, // [5:5] is the sub-list for method input_type
-	5, // [5:5] is the sub-list for extension type_name
-	5, // [5:5] is the sub-list for extension extendee
-	0, // [0:5] is the sub-list for field type_name
+	1, // 0: models.AccessRule.action:type_name -> models.AccessRuleAction
+	2, // 1: models.Backend.headers:type_name -> models.Header
+	6, // 2: models.Backend.created_at:type_name -> google.protobuf.Timestamp
+	6, // 3: models.Backend.updated_at:type_name -> google.protobuf.Timestamp
+	0, // 4: models.Backend.access_level:type_name -> models.AccessLevel
+	4, // 5: models.Backend.script_handler:type_name -> models.ScriptHandler
+	3, // 6: models.Backend.access_rules:type_name -> models.AccessRule
+	7, // [7:7] is the sub-list for method output_type
+	7, // [7:7] is the sub-list for method input_type
+	7, // [7:7] is the sub-list for extension type_name
+	7, // [7:7] is the sub-list for extension extendee
+	0, // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_protos_backend_proto_init() }
@@ -347,8 +480,8 @@ func file_protos_backend_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_protos_backend_proto_rawDesc), len(file_protos_backend_proto_rawDesc)),
-			NumEnums:      1,
-			NumMessages:   3,
+			NumEnums:      2,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

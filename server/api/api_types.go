@@ -123,6 +123,13 @@ type ApiBackendHeader struct {
 	Value string `json:"value"`
 }
 
+type ApiAccessRule struct {
+	// CEL expression evaluating to a bool.
+	Predicate string `json:"predicate"`
+	// Can be PUBLIC, AUTHENTICATED or DENY.
+	Action string `json:"action"`
+}
+
 type ApiBackend struct {
 	Fqdn        string             `json:"fqdn"`
 	UpstreamUrl string             `json:"upstreamUrl"`
@@ -130,15 +137,17 @@ type ApiBackend struct {
 	CreatedAt   string             `json:"createdAt"`
 	UpdatedAt   string             `json:"updatedAt"`
 	// Can be NORMAL or PUBLIC.
-	AccessLevel                  string `json:"accessLevel"`
-	JsScript                     string `json:"jsScript"`
-	PinnedCertificateFingerprint string `json:"pinnedCertificateFingerprint"`
+	AccessLevel                  string          `json:"accessLevel"`
+	AccessRules                  []ApiAccessRule `json:"accessRules"`
+	JsScript                     string          `json:"jsScript"`
+	PinnedCertificateFingerprint string          `json:"pinnedCertificateFingerprint"`
 }
 
 type ApiUpdateBackendRequest struct {
 	UpstreamUrl                  *string             `json:"upstreamUrl"`
 	Headers                      *[]ApiBackendHeader `json:"headers"`
 	AccessLevel                  *string             `json:"accessLevel"`
+	AccessRules                  *[]ApiAccessRule    `json:"accessRules"`
 	JsScript                     string              `json:"jsScript"`
 	PinnedCertificateFingerprint *string             `json:"pinnedCertificateFingerprint"`
 }

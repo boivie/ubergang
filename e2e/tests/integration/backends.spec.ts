@@ -145,6 +145,64 @@ test.describe("Backend Management Tests", () => {
       await expect(page.getByLabel("Header value")).toHaveValue("keep-me");
     });
 
+    test("add, reorder and remove access rules", async ({ page }) => {
+      await page.goto("/backends/edit/test.example.com");
+      await page.getByRole("button", { name: "Add Rule" }).click();
+      await page
+        .getByLabel("Rule predicate")
+        .fill('request.path.startsWith("/public/")');
+      await page.getByRole("button", { name: "Add Rule" }).click();
+      await page.getByLabel("Rule action").nth(1).selectOption("DENY");
+      await page
+        .getByLabel("Rule predicate")
+        .nth(1)
+        .fill('request.path == "/admin"');
+      await page.getByRole("button", { name: "Save Changes" }).click();
+      await expect(page).toHaveURL("/backends/");
+      await expect(
+        page.locator("ul li").filter({ hasText: "2 access rules" }),
+      ).toBeVisible();
+
+      // Check that it's saved, then move the second rule first.
+      await page.goto("/backends/edit/test.example.com");
+      await expect(page.getByLabel("Rule predicate")).toHaveCount(2);
+      await expect(page.getByLabel("Rule action").nth(0)).toHaveValue("PUBLIC");
+      await expect(page.getByLabel("Rule action").nth(1)).toHaveValue("DENY");
+      await page.getByRole("button", { name: "Move rule up" }).nth(1).click();
+      await page.getByRole("button", { name: "Save Changes" }).click();
+      await expect(page).toHaveURL("/backends/");
+
+      await page.goto("/backends/edit/test.example.com");
+      await expect(page.getByLabel("Rule predicate").nth(0)).toHaveValue(
+        'request.path == "/admin"',
+      );
+      await expect(page.getByLabel("Rule action").nth(0)).toHaveValue("DENY");
+
+      // Remove all rules.
+      await page.getByRole("button", { name: "Remove rule" }).nth(0).click();
+      await page.getByRole("button", { name: "Remove rule" }).nth(0).click();
+      await page.getByRole("button", { name: "Save Changes" }).click();
+      await expect(page).toHaveURL("/backends/");
+
+      await page.goto("/backends/edit/test.example.com");
+      await expect(page.getByLabel("Rule predicate")).toHaveCount(0);
+    });
+
+    test("shows error for invalid access rule", async ({ page }) => {
+      await page.goto("/backends/edit/test.example.com");
+      await page.getByRole("button", { name: "Add Rule" }).click();
+      await page.getByLabel("Rule predicate").fill('request.pth == "/"');
+      await page.getByRole("button", { name: "Save Changes" }).click();
+
+      await expect(page).toHaveURL("/backends/edit/test.example.com");
+      await expect(page.getByText("Save Failed")).toBeVisible();
+      await expect(page.getByText(/rule 1:.*pth/)).toBeVisible();
+      // The unsaved rule is still there to be fixed.
+      await expect(page.getByLabel("Rule predicate")).toHaveValue(
+        'request.pth == "/"',
+      );
+    });
+
     test("delete a backend", async ({ page }) => {
       await page.goto("/backends/");
       await testHelper.expectToBeOnBackends();

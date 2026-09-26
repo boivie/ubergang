@@ -1,6 +1,7 @@
 package ssh_server
 
 import (
+	"boivie/ubergang/server/access"
 	"boivie/ubergang/server/backends"
 	"boivie/ubergang/server/db"
 	"boivie/ubergang/server/log"
@@ -94,7 +95,9 @@ type roamingBackend struct {
 func (b *roamingBackend) Type() string              { return "roaming" }
 func (b *roamingBackend) Host() string              { return b.host }
 func (b *roamingBackend) Headers() []*models.Header { return []*models.Header{} }
-func (b *roamingBackend) NeedsAuth() bool           { return true }
+func (b *roamingBackend) AccessPolicy() *access.Policy {
+	return access.Fixed(access.Authenticated)
+}
 func (b *roamingBackend) URL() *url.URL {
 	u, _ := url.Parse("http://" + b.host)
 	return u

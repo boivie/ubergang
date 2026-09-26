@@ -1,6 +1,7 @@
 package proxy
 
 import (
+	"boivie/ubergang/server/access"
 	"boivie/ubergang/server/backends"
 	"boivie/ubergang/server/log"
 	"boivie/ubergang/server/models"
@@ -102,7 +103,17 @@ func (s *Proxy) ProxyHandler(w http.ResponseWriter, r *http.Request) {
 	var user *models.User = nil
 	var session *models.Session = nil
 
-	if backend.NeedsAuth() {
+	decision, err := backend.AccessPolicy().Evaluate(r.Context(), r)
+	if err != nil {
+		s.log.Warnf("Failed to evaluate access rules for %s%s: %v", r.Host, r.URL.Path, err)
+		http.Error(w, "Failed to evaluate access rules", http.StatusInternalServerError)
+		return
+	}
+	s.log.Debugf("Access decision for %s %s%s: %s", r.Method, r.Host, r.URL.Path, decision)
+
+	switch decision {
+	case access.Public:
+	case access.Authenticated:
 		user, session, err = s.session.Get(r)
 		if err != nil {
 			s.redirectAuthorizeInvalidSession(w, r)
@@ -113,6 +124,9 @@ func (s *Proxy) ProxyHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Forbidden", http.StatusForbidden)
 			return
 		}
+	default:
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
 	}
 
 	if backend.JsScript() != nil {

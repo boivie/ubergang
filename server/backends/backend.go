@@ -1,6 +1,7 @@
 package backends
 
 import (
+	"boivie/ubergang/server/access"
 	"boivie/ubergang/server/db"
 	"boivie/ubergang/server/log"
 	"boivie/ubergang/server/models"
@@ -8,9 +9,11 @@ import (
 	"net"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/dop251/goja"
+	"google.golang.org/protobuf/proto"
 )
 
 type Backend interface {
@@ -18,7 +21,7 @@ type Backend interface {
 	Host() string
 	Headers() []*models.Header
 	DialContext(ctx context.Context, network, address string) (net.Conn, error)
-	NeedsAuth() bool
+	AccessPolicy() *access.Policy
 	URL() *url.URL
 	JsScript() *goja.Program
 	PinnedCertificateFingerprint() string
@@ -28,10 +31,14 @@ type BackendManager struct {
 	db        *db.DB
 	log       *log.Log
 	ephemeral map[string]Backend
+
+	// Compiled backends, to avoid compiling scripts and rules on every request.
+	mu       sync.Mutex
+	compiled map[string]*localBackend
 }
 
 func New(db *db.DB, log *log.Log) *BackendManager {
-	return &BackendManager{db, log, make(map[string]Backend)}
+	return &BackendManager{db: db, log: log, ephemeral: make(map[string]Backend), compiled: make(map[string]*localBackend)}
 }
 
 type localBackend struct {
@@ -40,14 +47,15 @@ type localBackend struct {
 	backend *models.Backend
 	url     *url.URL
 	program *goja.Program
+	policy  *access.Policy
 }
 
-func (b *localBackend) Type() string              { return "local" }
-func (b *localBackend) Host() string              { return b.host }
-func (b *localBackend) Headers() []*models.Header { return b.backend.Headers }
-func (b *localBackend) NeedsAuth() bool           { return b.backend.AccessLevel != models.AccessLevel_PUBLIC }
-func (b *localBackend) URL() *url.URL             { return b.url }
-func (b *localBackend) JsScript() *goja.Program   { return b.program }
+func (b *localBackend) Type() string                 { return "local" }
+func (b *localBackend) Host() string                 { return b.host }
+func (b *localBackend) Headers() []*models.Header    { return b.backend.Headers }
+func (b *localBackend) AccessPolicy() *access.Policy { return b.policy }
+func (b *localBackend) URL() *url.URL                { return b.url }
+func (b *localBackend) JsScript() *goja.Program      { return b.program }
 func (b *localBackend) PinnedCertificateFingerprint() string {
 	return b.backend.PinnedCertificateFingerprint
 }
@@ -72,12 +80,34 @@ func (m *BackendManager) Lookup(host string) (Backend, error) {
 
 	backend, err := m.db.GetBackend(host)
 	if err != nil {
+		m.mu.Lock()
+		delete(m.compiled, host)
+		m.mu.Unlock()
 		if b, ok := m.ephemeral[host]; ok {
 			return b, nil
 		}
 		return nil, err
 	}
 
+	m.mu.Lock()
+	cached, ok := m.compiled[host]
+	m.mu.Unlock()
+	if ok && proto.Equal(cached.backend, backend) {
+		return cached, nil
+	}
+
+	compiled, err := m.compile(host, backend)
+	if err != nil {
+		return nil, err
+	}
+
+	m.mu.Lock()
+	m.compiled[host] = compiled
+	m.mu.Unlock()
+	return compiled, nil
+}
+
+func (m *BackendManager) compile(host string, backend *models.Backend) (*localBackend, error) {
 	url, err := url.Parse(backend.UpstreamUrl)
 	if err != nil {
 		return nil, err
@@ -91,7 +121,12 @@ func (m *BackendManager) Lookup(host string) (Backend, error) {
 		}
 	}
 
-	return &localBackend{m.log, host, backend, url, program}, nil
+	policy, err := access.Compile(backend.AccessRules, backend.AccessLevel)
+	if err != nil {
+		return nil, err
+	}
+
+	return &localBackend{m.log, host, backend, url, program, policy}, nil
 }
 
 func (m *BackendManager) AddEphemeral(backend Backend) {

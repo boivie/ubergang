@@ -2,13 +2,21 @@ import {
   ActionFunctionArgs,
   Form,
   redirect,
+  useActionData,
   useLoaderData,
   useParams,
 } from "react-router";
 import { ApiService } from "../api/api_client";
-import { ApiBackend, ApiValidateBackendResponse } from "../api/api_types";
+import {
+  ApiAccessRule,
+  ApiAccessRuleAction,
+  ApiBackend,
+  ApiValidateBackendResponse,
+} from "../api/api_types";
 import { useMemo, useState, useEffect, useRef } from "react";
 import {
+  IconArrowDown,
+  IconArrowUp,
   IconChevronDown,
   IconPlus,
   IconX,
@@ -33,6 +41,9 @@ export async function EditBackendAction(
   const upstreamUrl = payload.upstream as string;
   const headersStr = payload.headers as string;
   const accessLevel = payload.accessLevel as string;
+  const accessRules = JSON.parse(
+    payload.accessRules as string,
+  ) as ApiAccessRule[];
   const jsScript = payload.jsScript as string;
   const pinnedCertificateFingerprint =
     (payload.pinnedCertificateFingerprint as string) || "";
@@ -44,17 +55,32 @@ export async function EditBackendAction(
       return { name, value: valueParts.join("=") };
     });
 
-  await api.UpdateBackend(fqdn, {
-    upstreamUrl,
-    headers,
-    accessLevel,
-    jsScript,
-    pinnedCertificateFingerprint,
-  });
+  try {
+    await api.UpdateBackend(fqdn, {
+      upstreamUrl,
+      headers,
+      accessLevel,
+      accessRules,
+      jsScript,
+      pinnedCertificateFingerprint,
+    });
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error ? error.message : "Failed to update backend",
+    };
+  }
   return redirect("/backends/");
 }
 
 type EditableHeader = { id: number; name: string; value: string };
+type EditableAccessRule = { id: number } & ApiAccessRule;
+
+const accessRuleActions: { value: ApiAccessRuleAction; label: string }[] = [
+  { value: "PUBLIC", label: "Public" },
+  { value: "AUTHENTICATED", label: "Authenticated" },
+  { value: "DENY", label: "Deny" },
+];
 
 const commonHeaders = [
   "Host",
@@ -76,9 +102,20 @@ export default function BackendsEdit() {
   const { fqdn } = useParams<{ fqdn: string }>();
   const backend = useLoaderData() as ApiBackend;
   const api = useApiService();
+  const actionData = useActionData() as { error?: string } | undefined;
   const [upstreamUrl, setUpstreamUrl] = useState(backend.upstreamUrl);
   const [accessLevel, setAccessLevel] = useState(
     backend.accessLevel || "NORMAL",
+  );
+  const [accessRules, setAccessRules] = useState<EditableAccessRule[]>(() =>
+    (backend.accessRules || []).map((r, i) => ({ id: i, ...r })),
+  );
+  const accessRulesStr = useMemo(
+    () =>
+      JSON.stringify(
+        accessRules.map(({ predicate, action }) => ({ predicate, action })),
+      ),
+    [accessRules],
   );
   const [jsScript, setJsScript] = useState(backend.jsScript || "");
   const [isScriptExpanded, setIsScriptExpanded] = useState(!!backend.jsScript);
@@ -117,6 +154,33 @@ export default function BackendsEdit() {
 
   const removeHeader = (id: number) => {
     setHeaders(headers.filter((h) => h.id !== id));
+  };
+
+  const updateAccessRule = (id: number, changes: Partial<ApiAccessRule>) => {
+    setAccessRules(
+      accessRules.map((r) => (r.id === id ? { ...r, ...changes } : r)),
+    );
+  };
+
+  const addAccessRule = () => {
+    setAccessRules([
+      ...accessRules,
+      { id: Date.now(), predicate: "", action: "PUBLIC" },
+    ]);
+  };
+
+  const removeAccessRule = (id: number) => {
+    setAccessRules(accessRules.filter((r) => r.id !== id));
+  };
+
+  const moveAccessRule = (index: number, delta: number) => {
+    const target = index + delta;
+    if (target < 0 || target >= accessRules.length) {
+      return;
+    }
+    const rules = [...accessRules];
+    [rules[index], rules[target]] = [rules[target], rules[index]];
+    setAccessRules(rules);
   };
 
   const handleValidate = async (url: string) => {
@@ -182,10 +246,20 @@ export default function BackendsEdit() {
     <div className="max-w-xl mx-auto">
       <h1 className="text-2xl font-bold text-slate-800">Edit {fqdn}</h1>
       <p className="mt-2 text-slate-600">Update backend configuration.</p>
+      {actionData?.error && (
+        <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md flex items-start gap-3">
+          <IconAlertCircle className="text-red-600 shrink-0" size={20} />
+          <div className="flex-1">
+            <h3 className="text-sm font-medium text-red-800">Save Failed</h3>
+            <p className="mt-1 text-sm text-red-700">{actionData.error}</p>
+          </div>
+        </div>
+      )}
       <Form className="mt-8 space-y-6" method="post">
         <input type="hidden" name="fqdn" value={fqdn} />
         <input type="hidden" name="headers" value={headersStr} />
         <input type="hidden" name="accessLevel" value={accessLevel} />
+        <input type="hidden" name="accessRules" value={accessRulesStr} />
         <input type="hidden" name="jsScript" value={jsScript} />
         <input
           type="hidden"
@@ -376,8 +450,102 @@ export default function BackendsEdit() {
         </div>
 
         <div>
+          <label className="block text-sm font-medium text-slate-700">
+            Access Rules
+          </label>
+          <p className="mt-1 text-xs text-slate-500">
+            Evaluated in order. The first rule whose{" "}
+            <a
+              href="https://cel.dev"
+              target="_blank"
+              rel="noreferrer"
+              className="underline"
+            >
+              CEL
+            </a>{" "}
+            predicate is true decides access. Available fields:{" "}
+            <code>request.method</code>, <code>request.path</code>,{" "}
+            <code>request.host</code>, <code>request.headers</code>,{" "}
+            <code>request.query</code> and <code>request.remote_ip</code>.
+          </p>
+          <div className="mt-2 space-y-2">
+            {accessRules.map((rule, index) => (
+              <div
+                key={rule.id}
+                className="flex items-center gap-2"
+                data-testid={`access-rule-row-${rule.id}`}
+              >
+                <select
+                  aria-label="Rule action"
+                  value={rule.action}
+                  onChange={(e) =>
+                    updateAccessRule(rule.id, {
+                      action: e.target.value as ApiAccessRuleAction,
+                    })
+                  }
+                  className="h-10 px-2 text-sm border border-slate-300 rounded-md focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                >
+                  {accessRuleActions.map((a) => (
+                    <option key={a.value} value={a.value}>
+                      {a.label}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  type="text"
+                  aria-label="Rule predicate"
+                  value={rule.predicate}
+                  onChange={(e) =>
+                    updateAccessRule(rule.id, { predicate: e.target.value })
+                  }
+                  placeholder='request.path.startsWith("/public/")'
+                  spellCheck={false}
+                  className="flex-1 min-w-0 h-10 px-3 font-mono text-sm border border-slate-300 rounded-md focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                />
+                <button
+                  type="button"
+                  aria-label="Move rule up"
+                  disabled={index === 0}
+                  onClick={() => moveAccessRule(index, -1)}
+                  className="p-1 text-slate-500 hover:text-emerald-600 disabled:text-slate-300 disabled:cursor-not-allowed"
+                >
+                  <IconArrowUp size={18} />
+                </button>
+                <button
+                  type="button"
+                  aria-label="Move rule down"
+                  disabled={index === accessRules.length - 1}
+                  onClick={() => moveAccessRule(index, 1)}
+                  className="p-1 text-slate-500 hover:text-emerald-600 disabled:text-slate-300 disabled:cursor-not-allowed"
+                >
+                  <IconArrowDown size={18} />
+                </button>
+                <button
+                  type="button"
+                  aria-label="Remove rule"
+                  onClick={() => removeAccessRule(rule.id)}
+                  className="p-1 text-slate-500 hover:text-orange-600"
+                >
+                  <IconX size={18} />
+                </button>
+              </div>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={addAccessRule}
+            className="inline-flex items-center justify-center h-10 gap-2 px-5 mt-2 text-sm font-medium tracking-wide transition duration-300 border rounded-full focus-visible:outline-hidden whitespace-nowrap border-emerald-500 text-emerald-500 hover:border-emerald-600 hover:text-emerald-600 focus:border-emerald-700 focus:text-emerald-700"
+          >
+            <IconPlus size={16} />
+            Add Rule
+          </button>
+        </div>
+
+        <div>
           <label className="block text-sm font-medium text-slate-700 mb-2">
-            Access Level
+            {accessRules.length > 0
+              ? "Default Access (when no rule matches)"
+              : "Access Level"}
           </label>
           <label className="inline-flex items-center cursor-pointer">
             <input
