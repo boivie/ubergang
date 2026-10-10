@@ -13,13 +13,14 @@ import (
 )
 
 type ApiModule struct {
-	config    *models.Configuration
-	log       *log.Log
-	db        *db.DB
-	session   *session.SessionStore
-	auth      *auth.Auth
-	webauthn  *wa.WA
-	mqttProxy mqtt.ConnectionTracker
+	config            *models.Configuration
+	log               *log.Log
+	db                *db.DB
+	session           *session.SessionStore
+	auth              *auth.Auth
+	webauthn          *wa.WA
+	mqttProxy         mqtt.ConnectionTracker
+	trustProxyHeaders bool
 }
 
 func New(config *models.Configuration,
@@ -27,10 +28,11 @@ func New(config *models.Configuration,
 	log *log.Log,
 	session *session.SessionStore,
 	auth *auth.Auth,
-	mqttProxy mqtt.ConnectionTracker) *ApiModule {
+	mqttProxy mqtt.ConnectionTracker,
+	trustProxyHeaders bool) *ApiModule {
 
 	return &ApiModule{
-		config, log, db, session, auth, wa.New(config, db), mqttProxy,
+		config, log, db, session, auth, wa.New(config, db), mqttProxy, trustProxyHeaders,
 	}
 }
 

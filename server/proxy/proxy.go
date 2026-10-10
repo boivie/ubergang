@@ -192,9 +192,28 @@ func (s *Proxy) ProxyRequest(w http.ResponseWriter, r *http.Request, backend bac
 			"$http_host":     req.Host,
 			"$upstream_host": upstream.Host,
 		}
-		// Don't pass on a client-supplied chain; ReverseProxy appends the real
+		// Backends treat these headers as trustworthy - they identify the client
+		// and the authenticated user - so drop whatever the client sent and set
+		// our own values below. This must happen before the (conditional) sets,
+		// or a client could spoof them on requests where we don't overwrite
+		// them, such as public paths.
+		//
+		// X-Forwarded-For is removed here too: ReverseProxy appends the real
 		// client address (the PROXY protocol address, if used) to what's left.
-		req.Header.Del("X-Forwarded-For")
+		for _, header := range []string{
+			"Forwarded",
+			"X-Forwarded-For",
+			"X-Forwarded-Host",
+			"X-Forwarded-Proto",
+			"X-Forwarded-Email",
+			"X-Forwarded-Name",
+			"X-Real-IP",
+			"CF-Connecting-IP",
+			"True-Client-IP",
+		} {
+			req.Header.Del(header)
+		}
+
 		req.Header.Set("X-Forwarded-Host", req.Host)
 		req.Header.Set("X-Forwarded-Proto", "https")
 		if user != nil {
@@ -202,8 +221,6 @@ func (s *Proxy) ProxyRequest(w http.ResponseWriter, r *http.Request, backend bac
 			if user.DisplayName != "" {
 				// RFC 2047-encode so non-ASCII names survive as header values.
 				req.Header.Set("X-Forwarded-Name", mime.QEncoding.Encode("utf-8", user.DisplayName))
-			} else {
-				req.Header.Del("X-Forwarded-Name")
 			}
 		}
 		if _, ok := req.Header["User-Agent"]; !ok {

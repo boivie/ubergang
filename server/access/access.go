@@ -16,6 +16,10 @@ The predicate has access to a `request` variable with the following fields:
 	request.query      map(string, string)  first value only
 	request.remote_ip  string               e.g. "192.0.2.1"
 
+The headers are the ones the client sent, as-is: rules must not trust identity
+headers (X-Forwarded-Email and friends) - those are only set when a request is
+forwarded to a backend, not here.
+
 Example predicates:
 
 	request.path == "/health" || request.path.startsWith("/static/")
