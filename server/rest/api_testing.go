@@ -52,7 +52,7 @@ func CreateFixture(t *testing.T) *Fixture {
 	if err != nil {
 		panic(err)
 	}
-	api := New(config, db, log, session, auth, &FakeMqttConnectionTracker{})
+	api := New(config, db, log, session, auth, &FakeMqttConnectionTracker{}, false)
 	router := mux.NewRouter()
 	api.RegisterEndpoints(router)
 	return &Fixture{

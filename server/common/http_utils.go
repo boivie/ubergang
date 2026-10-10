@@ -7,10 +7,25 @@ import (
 )
 
 // ReadUserIP gets the user's IP address from the request.
-// It checks a series of standard and non-standard headers in a specific order
-// to identify the IP, which is important when the server is behind one or more
-// reverse proxies.
-func ReadUserIP(r *http.Request) string {
+//
+// When trustProxyHeaders is set, it checks a series of standard and
+// non-standard headers in a specific order to identify the IP, which is
+// important when the server is behind one or more reverse proxies. Without
+// such a proxy in front of the server, those headers are under the client's
+// control and would let it claim any address - then only the address of the
+// connection itself is used.
+func ReadUserIP(r *http.Request, trustProxyHeaders bool) string {
+	if trustProxyHeaders {
+		if ip := readForwardedUserIP(r); ip != "" {
+			return ip
+		}
+	}
+	return remoteAddrIP(r)
+}
+
+// readForwardedUserIP returns the client IP from the forwarding headers, or an
+// empty string if none of them contains a valid IP address.
+func readForwardedUserIP(r *http.Request) string {
 	// Headers are checked in a specific order of precedence.
 	// Headers set by trusted proxies (like Cloudflare) should be checked first.
 	// The `Forwarded` header is the IETF standard, but `X-Forwarded-For` is more common.
@@ -68,7 +83,12 @@ func ReadUserIP(r *http.Request) string {
 		}
 	}
 
-	// If no header is found or is valid, fall back to RemoteAddr.
+	return "" // Return empty string if no valid IP is found
+}
+
+// remoteAddrIP returns the IP address of the connection, or an empty string if
+// it holds no valid IP address.
+func remoteAddrIP(r *http.Request) string {
 	ip, _, err := net.SplitHostPort(r.RemoteAddr)
 	if err == nil {
 		return ip

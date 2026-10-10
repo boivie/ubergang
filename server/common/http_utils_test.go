@@ -133,9 +133,34 @@ func TestReadUserIP(t *testing.T) {
 				r.Header.Set(key, value)
 			}
 
-			ip := ReadUserIP(r)
+			ip := ReadUserIP(r, true /*trustProxyHeaders*/)
 			if ip != tc.expectedIP {
 				t.Errorf("Expected IP %s, but got %s", tc.expectedIP, ip)
+			}
+		})
+	}
+}
+
+// Without a trusted proxy in front of the server, the headers are set by the
+// client, so its address must come from the connection instead.
+func TestReadUserIPWithoutTrustingProxyHeaders(t *testing.T) {
+	for _, header := range []string{
+		"CF-Connecting-IP",
+		"True-Client-IP",
+		"X-Forwarded-For",
+		"X-Real-IP",
+		"Forwarded",
+	} {
+		t.Run(header, func(t *testing.T) {
+			r := &http.Request{
+				Header:     make(http.Header),
+				RemoteAddr: "192.0.2.1:12345",
+			}
+			r.Header.Set(header, "203.0.113.1")
+
+			ip := ReadUserIP(r, false /*trustProxyHeaders*/)
+			if ip != "192.0.2.1" {
+				t.Errorf("Expected IP 192.0.2.1, but got %s", ip)
 			}
 		})
 	}

@@ -50,7 +50,7 @@ func (s *ApiModule) handleSigninPinRequest(w http.ResponseWriter, r *http.Reques
 			Pin:       pin,
 			ExpiresAt: timestamppb.New(time.Now().Add(30 * time.Minute)),
 			UserAgent: req.UserAgent,
-			Ip:        common.ReadUserIP(r),
+			Ip:        common.ReadUserIP(r, s.trustProxyHeaders),
 		})
 		return old, nil
 	})

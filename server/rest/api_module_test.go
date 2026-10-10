@@ -162,7 +162,7 @@ func TestApiModuleNew(t *testing.T) {
 		f := CreateFixture(t)
 
 		// Create a new API module using the same components
-		apiModule := New(config, f.Db, nil, f.Session, f.Auth, &FakeMqttConnectionTracker{})
+		apiModule := New(config, f.Db, nil, f.Session, f.Auth, &FakeMqttConnectionTracker{}, false)
 
 		assert.NotNil(t, apiModule)
 

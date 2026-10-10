@@ -53,6 +53,8 @@ var flgMqttTlsPort = flag.Int("mqtt-tls", 8883, "Port for MQTT TLS proxy server"
 var flgMqttServer = flag.String("mqtt-server", "", "MQTT server")
 var flgLocalDev = flag.Bool("local-dev", false, "Local development")
 var flgVerbose = flag.Bool("verbose", false, "Verbose logs")
+var flgTrustProxyHeaders = flag.Bool("trust-proxy-headers", false,
+	"Trust client IP headers (CF-Connecting-IP, X-Forwarded-For, ...) set by an upstream reverse proxy")
 
 var (
 	httpRequestsTotalMetric = promauto.NewCounterVec(prometheus.CounterOpts{
@@ -193,7 +195,7 @@ func NewServer(db *db.DB, assets *embed.FS) *Server {
 		backendManager: backends,
 		session:        session,
 		auth:           auth,
-		api:            rest.New(config, db, log, session, auth, mqttProxy),
+		api:            rest.New(config, db, log, session, auth, mqttProxy, *flgTrustProxyHeaders),
 		proxy:          proxy.New(config, log, session, updateAccessed, backends, mqttPublisher),
 		sshServer:      ssh_server.New(log, config, db, backends),
 		mqttProxy:      mqttProxy,
