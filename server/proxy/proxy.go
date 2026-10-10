@@ -13,6 +13,7 @@ import (
 	"crypto/x509"
 	"encoding/hex"
 	"fmt"
+	"mime"
 	"net/http"
 	"net/http/httputil"
 	"strings"
@@ -191,10 +192,19 @@ func (s *Proxy) ProxyRequest(w http.ResponseWriter, r *http.Request, backend bac
 			"$http_host":     req.Host,
 			"$upstream_host": upstream.Host,
 		}
+		// Don't pass on a client-supplied chain; ReverseProxy appends the real
+		// client address (the PROXY protocol address, if used) to what's left.
+		req.Header.Del("X-Forwarded-For")
 		req.Header.Set("X-Forwarded-Host", req.Host)
 		req.Header.Set("X-Forwarded-Proto", "https")
 		if user != nil {
 			req.Header.Set("X-Forwarded-Email", user.Email)
+			if user.DisplayName != "" {
+				// RFC 2047-encode so non-ASCII names survive as header values.
+				req.Header.Set("X-Forwarded-Name", mime.QEncoding.Encode("utf-8", user.DisplayName))
+			} else {
+				req.Header.Del("X-Forwarded-Name")
+			}
 		}
 		if _, ok := req.Header["User-Agent"]; !ok {
 			// explicitly disable User-Agent so it's not set to default value
