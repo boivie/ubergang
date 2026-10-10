@@ -148,9 +148,17 @@ func NewServer(db *db.DB, assets *embed.FS) *Server {
 			log.Infof("Using LetsEncrypt certificates via certmagic with HTTP-01")
 		}
 
+		// The admin FQDN may include a port, when the admin UI is served on a
+		// non-standard port. The host passed to the cert host policy never
+		// does, so compare without one.
+		adminHost := config.AdminFqdn
+		if h, _, err := net.SplitHostPort(adminHost); err == nil {
+			adminHost = h
+		}
+
 		tlsManager = tls.NewCertMagicTlsManager(db, config.Email, config.SiteFqdn, func(ctx context.Context, host string) error {
 			// Allow admin FQDN
-			if host == config.AdminFqdn {
+			if host == adminHost {
 				return nil
 			}
 
@@ -283,11 +291,26 @@ func (s *Server) ServeMetrics() {
 	}
 }
 
+// httpsRedirectTarget returns the host to redirect a plain HTTP request to.
+// A port present in the request's Host header is replaced by the configured
+// HTTPS port; a Host without a port (e.g. requests that arrived through a
+// proxy fronting the default ports) is passed through unchanged.
+func httpsRedirectTarget(requestHost string, httpsPort int) string {
+	host, _, err := net.SplitHostPort(requestHost)
+	if err != nil {
+		return requestHost
+	}
+	if httpsPort == 443 {
+		return host
+	}
+	return net.JoinHostPort(host, strconv.Itoa(httpsPort))
+}
+
 func (s *Server) httpServer() {
 	logger := log.New(os.Stdout, "", log.LstdFlags)
 	r := mux.NewRouter()
 	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		newURI := "https://" + r.Host + r.URL.String()
+		newURI := "https://" + httpsRedirectTarget(r.Host, *flgHttpsPort) + r.URL.String()
 		http.Redirect(w, r, newURI, http.StatusFound)
 	})
 	httpSrv := makeServerFromMux(logger, r)
