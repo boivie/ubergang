@@ -212,7 +212,8 @@ func (s *Proxy) ProxyRequest(w http.ResponseWriter, r *http.Request, backend bac
 	}
 
 	proxy := &httputil.ReverseProxy{
-		Director: director,
+		// TODO: Migrate to Rewrite, which handles X-Forwarded-* differently.
+		Director: director, //nolint:staticcheck // SA1019: deprecated in Go 1.26
 		Transport: &http.Transport{
 			Proxy:                 http.ProxyFromEnvironment,
 			DialContext:           backend.DialContext,

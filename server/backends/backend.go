@@ -62,7 +62,6 @@ func (b *localBackend) DialContext(ctx context.Context, network, address string)
 	return (&net.Dialer{
 		Timeout:   2 * time.Second,
 		KeepAlive: 5 * time.Second,
-		DualStack: true,
 	}).DialContext(ctx, network, newAddress)
 }
 
