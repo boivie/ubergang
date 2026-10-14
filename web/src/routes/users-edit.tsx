@@ -7,7 +7,7 @@ import {
   IconPlus,
   IconX,
 } from "@tabler/icons-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Button,
   Dialog,
@@ -93,14 +93,11 @@ export default function UsersEdit() {
   const [allowedHosts, setAllowedHosts] = useState<string[]>(
     [...(user.allowedHosts || [])].sort(),
   );
-  const [allowedHostsStr, setAllowedHostsStr] = useState("");
   const [recoveryUrl, setRecoveryUrl] = useState("");
   const [copySuccess, setCopySuccess] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  useEffect(() => {
-    setAllowedHostsStr(allowedHosts.join("\n"));
-  }, [allowedHosts]);
+  const allowedHostsStr = allowedHosts.join("\n");
 
   const handleHostChange = (index: number, value: string) => {
     setAllowedHosts(allowedHosts.map((h, i) => (i === index ? value : h)));
