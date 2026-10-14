@@ -230,6 +230,8 @@ export default function BackendsEdit() {
 
   // Validate on initial load
   useEffect(() => {
+    // Fetching from the server on mount; the loading state is set synchronously.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     handleValidate(upstreamUrl);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 

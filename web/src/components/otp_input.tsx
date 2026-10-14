@@ -2,6 +2,7 @@ import {
   ChangeEvent,
   ClipboardEvent,
   FocusEvent,
+  InputEvent,
   KeyboardEvent,
   useEffect,
   useRef,
@@ -50,9 +51,9 @@ const OTPInput = ({
     }
   };
 
-  const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
-    if (!isInputValueValid(event.target.value)) {
-      event.target.value = "";
+  const handleInputChange = (event: InputEvent<HTMLInputElement>) => {
+    if (!isInputValueValid(event.currentTarget.value)) {
+      event.currentTarget.value = "";
     }
   };
 
