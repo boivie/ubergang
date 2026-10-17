@@ -111,6 +111,10 @@ func authenticationStateKey(stateId *uuid.UUID) []byte {
 	return []byte(fmt.Sprintf("auth-state:%s", stateId.String()))
 }
 
+func trampolineTokenKey(token string) []byte {
+	return []byte(fmt.Sprintf("trampoline:%s", token))
+}
+
 func mqttProfileKey(id string) []byte {
 	return []byte(fmt.Sprintf("mqtt-profile:%s", id))
 }
@@ -812,6 +816,38 @@ func (d *DB) ConsumeAuthenticationState(token string) (ret *models.Authenticatio
 		return b.Delete(key)
 	})
 
+	return
+}
+
+func (d *DB) StoreTrampolineToken(token string, t *models.TrampolineToken) error {
+	return d.db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket(BucketName)
+		key := trampolineTokenKey(token)
+		if b.Get(key) != nil {
+			return errors.New("ID collision")
+		}
+		serialized, err := proto.Marshal(t)
+		if err != nil {
+			return err
+		}
+		return b.Put(key, serialized)
+	})
+}
+
+func (d *DB) ConsumeTrampolineToken(token string) (ret *models.TrampolineToken, err error) {
+	err = d.db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket(BucketName)
+		key := trampolineTokenKey(token)
+		v := b.Get(key)
+		if v == nil {
+			return errors.New("trampoline token not found")
+		}
+		ret = &models.TrampolineToken{}
+		if err := proto.Unmarshal(v, ret); err != nil {
+			return err
+		}
+		return b.Delete(key)
+	})
 	return
 }
 

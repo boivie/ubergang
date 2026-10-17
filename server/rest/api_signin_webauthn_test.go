@@ -92,3 +92,18 @@ func TestSigninWebauthn(t *testing.T) {
 		assert.NotEqual(t, oldSessionId, newSessionId, "Expected a new session to be created, but session was reused")
 	})
 }
+
+func TestLocalRedirect(t *testing.T) {
+	for redirect, want := range map[string]string{
+		"":                         "",
+		"/":                        "/",
+		"/backends?a=b":            "/backends?a=b",
+		"//evil.example.com":       "",
+		"/\\evil.example.com":      "",
+		"/\t/evil.example.com":     "",
+		"https://evil.example.com": "",
+		"javascript:alert(1)":      "",
+	} {
+		assert.Equal(t, want, localRedirect(redirect), "redirect %q", redirect)
+	}
+}

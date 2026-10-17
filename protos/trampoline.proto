@@ -1,0 +1,17 @@
+syntax = "proto3";
+package models;
+
+option go_package = "./server/models";
+
+import "google/protobuf/timestamp.proto";
+
+// A short-lived, single-use token that a backend host exchanges for the
+// session cookie, after the user has signed in on the admin host. It's passed
+// in the URL instead of the session itself, and is only valid on the host it
+// was issued for.
+// Ref: "trampoline:$token"
+message TrampolineToken {
+  string session_id = 1;
+  string host = 2;
+  google.protobuf.Timestamp expires_at = 3;
+}

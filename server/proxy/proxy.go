@@ -55,24 +55,30 @@ func (s *Proxy) redirectAuthorizeInvalidSession(w http.ResponseWriter, r *http.R
 }
 
 func (s *Proxy) serveHandleTrampoline(w http.ResponseWriter, r *http.Request) bool {
-	value := r.URL.Query().Get("_ubergang_session")
+	value := r.URL.Query().Get(trampolineParam)
 	if value == "" {
-		return false
-	}
-	_, session, err := s.session.DecodeSessionCookie(value, true)
-	if err != nil {
-		s.log.Warnf("Failed to find session from trampoline: %v", err)
-		s.redirectsigninInvalidSession(w, r)
 		return false
 	}
 
 	u := r.URL
 	q := u.Query()
-	q.Del("_ubergang_session")
+	q.Del(trampolineParam)
 	u.RawQuery = q.Encode()
-	http.SetCookie(w, s.session.CreateSessionCookie(session))
+
+	// Whether the token is valid or not, redirect to the URL without it. If it
+	// isn't, that request will go through /authorize again.
+	_, session, err := s.session.ConsumeTrampolineToken(value, r.Host)
+	if err != nil {
+		s.log.Warnf("Failed to find session from trampoline: %v", err)
+	} else {
+		// Set by the server, unlike the admin host's cookie, so it can be
+		// hidden from the backend's scripts.
+		cookie := s.session.CreateSessionCookie(session)
+		cookie.HttpOnly = true
+		http.SetCookie(w, cookie)
+		s.log.Info("Set session cookie")
+	}
 	http.Redirect(w, r, u.String(), http.StatusFound)
-	s.log.Info("Set session cookie")
 	return true
 }
 
@@ -213,6 +219,7 @@ func (s *Proxy) ProxyRequest(w http.ResponseWriter, r *http.Request, backend bac
 		} {
 			req.Header.Del(header)
 		}
+		s.session.StripSessionCookie(req.Header)
 
 		req.Header.Set("X-Forwarded-Host", req.Host)
 		req.Header.Set("X-Forwarded-Proto", "https")

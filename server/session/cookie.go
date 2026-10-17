@@ -4,12 +4,18 @@ import (
 	"boivie/ubergang/server/db"
 	"boivie/ubergang/server/log"
 	"boivie/ubergang/server/models"
+	"crypto/rand"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"strings"
 	"time"
+
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
+
+const trampolineTokenExpiry = time.Minute
 
 type SessionStore struct {
 	log           *log.Log
@@ -74,6 +80,70 @@ func (s *SessionStore) CreateSessionCookie(session *models.Session) *http.Cookie
 
 func (s *SessionStore) EncodeSessionCookie(session *models.Session) string {
 	return fmt.Sprintf("%s:%s", session.Id, session.Secret)
+}
+
+// StripSessionCookie removes the session cookie from the Cookie headers in
+// `h`, keeping all other cookies as sent. Backends must never see it, as it's
+// valid on the admin host as well.
+func (s *SessionStore) StripSessionCookie(h http.Header) {
+	var kept []string
+	for _, line := range h.Values("Cookie") {
+		var parts []string
+		for _, part := range strings.Split(line, ";") {
+			part = strings.TrimSpace(part)
+			name, _, _ := strings.Cut(part, "=")
+			if part != "" && name != s.sessionCookie {
+				parts = append(parts, part)
+			}
+		}
+		if len(parts) > 0 {
+			kept = append(kept, strings.Join(parts, "; "))
+		}
+	}
+	h.Del("Cookie")
+	for _, line := range kept {
+		h.Add("Cookie", line)
+	}
+}
+
+// normalizeHost lowercases `host` and strips any port from it.
+func normalizeHost(host string) string {
+	if h, _, err := net.SplitHostPort(host); err == nil {
+		host = h
+	}
+	return strings.ToLower(host)
+}
+
+// CreateTrampolineToken returns a single-use token that can be exchanged for
+// the session's cookie on `host` (only), within a short time.
+func (s *SessionStore) CreateTrampolineToken(session *models.Session, host string) (string, error) {
+	token := rand.Text()
+	err := s.db.StoreTrampolineToken(token, &models.TrampolineToken{
+		SessionId: session.Id,
+		Host:      normalizeHost(host),
+		ExpiresAt: timestamppb.New(time.Now().Add(trampolineTokenExpiry)),
+	})
+	if err != nil {
+		return "", err
+	}
+	return token, nil
+}
+
+// ConsumeTrampolineToken exchanges a token created by CreateTrampolineToken
+// for its session, if it was issued for `host` and hasn't expired. The token
+// can't be used again, whether this succeeds or not.
+func (s *SessionStore) ConsumeTrampolineToken(token, host string) (*models.User, *models.Session, error) {
+	t, err := s.db.ConsumeTrampolineToken(token)
+	if err != nil {
+		return nil, nil, err
+	}
+	if t.Host != normalizeHost(host) {
+		return nil, nil, fmt.Errorf("trampoline token issued for %s, used on %s", t.Host, host)
+	}
+	if t.ExpiresAt.AsTime().Before(time.Now()) {
+		return nil, nil, errors.New("trampoline token has expired")
+	}
+	return s.db.GetSession(t.SessionId)
 }
 
 func (s *SessionStore) DecodeSessionCookie(value string, validateSecret bool) (*models.User, *models.Session, error) {
