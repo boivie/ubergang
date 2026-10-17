@@ -116,7 +116,7 @@ npm run lint    # ESLint
 ### Key Components
 
 - **Multi-Protocol Server** - Simultaneous HTTP/HTTPS (port 443/80), SSH
-  (10022), metrics (9090)
+  (opt-in with `--ssh <port>`), metrics (9090)
 - **Authentication Provider** - WebAuthn, PIN codes, SSH public keys
 - **Reverse Proxy** - Routes authenticated requests to configured backends
 - **Configuration Management** - File-based YAML configuration with hot reload

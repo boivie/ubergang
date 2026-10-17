@@ -43,7 +43,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-var flgSshPort = flag.Int("ssh", 10022, "Port for SSH server")
+var flgSshPort = flag.Int("ssh", 0, "Port for SSH server (disabled if 0)")
 var flgHttpsPort = flag.Int("https", 10443, "Port for HTTPS server")
 var flgHttpPort = flag.Int("http", 10080, "Port for HTTP server")
 var flgProxyTestPort = flag.Int("proxy-test", 0, "Port for proxy test")
@@ -242,20 +242,21 @@ func (s *Server) Serve() error {
 		}
 	}()
 
-	sshKeyPem, err := s.db.GetSshServerKey()
-	if err != nil {
-		fmt.Println("Generating new SSH key")
-		sshKeyPem, err = auth.GenerateSshKey()
+	if *flgSshPort != 0 {
+		sshKeyPem, err := s.db.GetSshServerKey()
 		if err != nil {
-			log.Fatalf("Unable to generate SSH key: %v", err)
+			fmt.Println("Generating new SSH key")
+			sshKeyPem, err = auth.GenerateSshKey()
+			if err != nil {
+				log.Fatalf("Unable to generate SSH key: %v", err)
+			}
+			err = s.db.UpdateSshServerKey(sshKeyPem)
+			if err != nil {
+				log.Fatalf("Unable to save SSH key: %v", err)
+			}
 		}
-		err = s.db.UpdateSshServerKey(sshKeyPem)
-		if err != nil {
-			log.Fatalf("Unable to save SSH key: %v", err)
-		}
+		go s.sshServer.ServeSSH(sshKeyPem, *flgSshPort)
 	}
-
-	go s.sshServer.ServeSSH(sshKeyPem, *flgSshPort)
 	go s.ServeMetrics()
 	go s.httpsServer()
 
