@@ -61,7 +61,7 @@ func (s *ApiModule) handleSigninPinPoll(w http.ResponseWriter, r *http.Request) 
 			jsonify(w, api.ApiPollSigninPinResponse{
 				Success: &api.ApiPollSigningPinSuccess{
 					Cookie:   s.session.CreateSessionCookie(session).String(),
-					Redirect: s.createRedirect(req.Redirect, session),
+					Redirect: localRedirect(req.Redirect),
 				}})
 			return
 		}

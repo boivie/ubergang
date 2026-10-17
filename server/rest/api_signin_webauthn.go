@@ -8,7 +8,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"net/http"
-	"net/url"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -103,7 +103,7 @@ func (s *ApiModule) handleSigninWebauthn(w http.ResponseWriter, r *http.Request)
 	jsonify(w, api.ApiSignInWebauthResponse{
 		Success: &api.ApiSignInWebauthnSuccess{
 			Cookie:   s.session.CreateSessionCookie(session).String(),
-			Redirect: s.createRedirect(req.Redirect, session),
+			Redirect: localRedirect(req.Redirect),
 		}})
 }
 
@@ -135,18 +135,19 @@ func (s *ApiModule) getPasswordlessState(w http.ResponseWriter, r *http.Request,
 	}, nil
 }
 
-func (s *ApiModule) createRedirect(redirect string, session *models.Session) string {
-	if redirect == "" {
+// localRedirect returns `redirect` if it's a path on the admin host, and an
+// empty string otherwise. Backends get their session cookie through
+// /authorize, which validates the target host.
+func localRedirect(redirect string) string {
+	// Browsers treat a backslash as a slash, and strip tabs and newlines, so
+	// "/\evil.com" or "/\t/evil.com" would become "//evil.com".
+	if strings.ContainsFunc(redirect, func(r rune) bool { return r <= ' ' || r == '\\' }) {
 		return ""
 	}
-	u, err := url.Parse(redirect)
-	if err != nil {
+	if !strings.HasPrefix(redirect, "/") || strings.HasPrefix(redirect, "//") {
 		return ""
 	}
-	q := u.Query()
-	q.Set("_ubergang_session", s.session.EncodeSessionCookie(session))
-	u.RawQuery = q.Encode()
-	return u.String()
+	return redirect
 }
 
 func (s *ApiModule) signin(r *http.Request, user *models.User) (session *models.Session, err error) {

@@ -33,6 +33,8 @@ type fixture struct {
 	upstream *upstreamRecorder
 	session  *session.SessionStore
 	auth     *auth.Auth
+	proxy    *Proxy
+	db       *db.DB
 }
 
 // Sets up a proxy for a backend with the provided rules.
@@ -67,18 +69,25 @@ func setupProxy(t *testing.T, accessLevel models.AccessLevel, rules ...*models.A
 
 	r := mux.NewRouter()
 	r.PathPrefix("/").HandlerFunc(p.ProxyHandler)
-	return &fixture{router: r, upstream: upstream, session: store, auth: auth.New(logger, database)}
+	return &fixture{router: r, upstream: upstream, session: store, auth: auth.New(logger, database), proxy: p, db: database}
 }
 
 // signin creates a user allowed to access the backend and returns its session
 // cookie.
 func (f *fixture) signin(t *testing.T) *http.Cookie {
 	t.Helper()
+	return f.session.CreateSessionCookie(f.signinSession(t))
+}
+
+// signinSession creates a user allowed to access the backend and returns its
+// session.
+func (f *fixture) signinSession(t *testing.T) *models.Session {
+	t.Helper()
 	user, _, err := f.auth.CreateUser("user@example.com", "User", false, []string{fqdn})
 	require.NoError(t, err)
 	session, err := f.auth.CreateSession(user.Id, "user-agent", "remote-addr")
 	require.NoError(t, err)
-	return f.session.CreateSessionCookie(session)
+	return session
 }
 
 func do(f *fixture, method, target string) *httptest.ResponseRecorder {
