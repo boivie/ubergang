@@ -49,6 +49,11 @@ func New(config *models.Configuration, db *db.DB) *WA {
 		RPDisplayName:         "ubergang",
 		RPOrigins:             []string{"https://" + config.AdminFqdn},
 		AttestationPreference: "none",
+		// Without this, the stored challenges never expire.
+		Timeouts: webauthn.TimeoutsConfig{
+			Login:        webauthn.TimeoutConfig{Enforce: true},
+			Registration: webauthn.TimeoutConfig{Enforce: true},
+		},
 		AuthenticatorSelection: protocol.AuthenticatorSelection{
 			AuthenticatorAttachment: "platform",
 			RequireResidentKey:      &[]bool{true}[0],

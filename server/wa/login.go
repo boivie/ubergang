@@ -34,6 +34,22 @@ func (s *WA) CreateAssertion(user *models.User, credentials []*models.Credential
 		return
 	}
 
+	return s.storeAssertion(options, st, user.Id, fixupState)
+}
+
+// CreateDiscoverableAssertion is like CreateAssertion, but for passwordless
+// sign-in, where the user isn't known until the authenticator has responded.
+// The stored state has no user ID - it must be taken from the response's user
+// handle before the response is validated.
+func (s *WA) CreateDiscoverableAssertion(fixupState func(state *models.AuthenticationState)) (token string, credentialAssertion *api.ApiAssertionRequest, err error) {
+	options, st, err := s.webAuthn.BeginDiscoverableLogin()
+	if err != nil {
+		return
+	}
+	return s.storeAssertion(options, st, "", fixupState)
+}
+
+func (s *WA) storeAssertion(options *protocol.CredentialAssertion, st *webauthn.SessionData, userId string, fixupState func(state *models.AuthenticationState)) (token string, credentialAssertion *api.ApiAssertionRequest, err error) {
 	stateUuid, err := uuid.NewV7()
 	if err != nil {
 		return
@@ -42,7 +58,7 @@ func (s *WA) CreateAssertion(user *models.User, credentials []*models.Credential
 
 	state := &models.AuthenticationState{
 		UserVerification:   string(st.UserVerification),
-		UserId:             user.Id,
+		UserId:             userId,
 		Challenge:          st.Challenge,
 		AllowedCredentials: st.AllowedCredentialIDs,
 		ExpiresAt:          timestamppb.New(st.Expires)}

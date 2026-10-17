@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/golang-jwt/jwt/v5"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -35,15 +34,22 @@ func (s *ApiModule) handleSigninWebauthn(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	var state *models.AuthenticationState
-	state, err = s.getPasswordlessState(w, r, req)
-	if err != nil {
-		state, err = s.db.ConsumeAuthenticationState(req.Token)
-	}
+	state, err := s.db.ConsumeAuthenticationState(req.Token)
 	if err != nil || state.GetSignIn() == nil {
 		s.log.Warn("Authentication state not found or not intended for sign-in")
 		respondErr(api.ApiSignInWebauthnError{InternalError: true})
 		return
+	}
+	if state.UserId == "" {
+		// Passwordless sign-in: the authenticator tells which user it signed in
+		// as. The assertion is then validated against that user's credentials.
+		userHandle, err := base64.RawURLEncoding.DecodeString(req.Credential.Response.UserHandle)
+		if err != nil || len(userHandle) == 0 {
+			s.log.Warn("Passwordless sign-in without a user handle")
+			respondErr(api.ApiSignInWebauthnError{InvalidCredential: true})
+			return
+		}
+		state.UserId = string(userHandle)
 	}
 
 	user, err := s.db.GetUserById(state.UserId)
@@ -105,34 +111,6 @@ func (s *ApiModule) handleSigninWebauthn(w http.ResponseWriter, r *http.Request)
 			Cookie:   s.session.CreateSessionCookie(session).String(),
 			Redirect: localRedirect(req.Redirect),
 		}})
-}
-
-func (s *ApiModule) getPasswordlessState(w http.ResponseWriter, r *http.Request, req api.ApiSignInWebauthnRequest) (*models.AuthenticationState, error) {
-	token, err := jwt.ParseWithClaims(req.Token, &jwt.RegisteredClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte("secret"), nil
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	claims, ok := token.Claims.(*jwt.RegisteredClaims)
-	if !ok {
-		return nil, errors.New("invalid claims")
-	}
-
-	decoded, err := base64.RawURLEncoding.DecodeString(req.Credential.Response.UserHandle)
-	if err != nil {
-		return nil, err
-	}
-
-	return &models.AuthenticationState{
-		UserId:    string(decoded),
-		Challenge: claims.Subject,
-		ExpiresAt: timestamppb.New(claims.ExpiresAt.Time),
-		Type: &models.AuthenticationState_SignIn{
-			SignIn: &models.AthenticationStateSignIn{},
-		},
-	}, nil
 }
 
 // localRedirect returns `redirect` if it's a path on the admin host, and an
