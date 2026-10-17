@@ -216,6 +216,24 @@ func (s *SSHServer) RemoteForwardHandler(ctx ssh.Context, srv *ssh.Server, req *
 	return true, gossh.Marshal(&remoteForwardSuccess{reqPayload.BindPort})
 }
 
+// authenticate returns the key and its user if `pubKey` is registered, and
+// has been confirmed with a passkey recently enough to not have expired.
+func (s *SSHServer) authenticate(pubKey ssh.PublicKey, now time.Time) (*models.SshKey, *models.User, error) {
+	sha256Fingerprint := sha256.Sum256(pubKey.Marshal())
+	key, err := s.db.GetSshKeyByFingerprint(sha256Fingerprint[:])
+	if err != nil {
+		return nil, nil, err
+	}
+	if key.ExpiresAt == nil || !key.ExpiresAt.AsTime().After(now) {
+		return nil, nil, fmt.Errorf("key %s is unconfirmed or has expired - run ugcert to renew", key.Id)
+	}
+	user, err := s.db.GetUserById(key.UserId)
+	if err != nil {
+		return nil, nil, err
+	}
+	return key, user, nil
+}
+
 func (s *SSHServer) ServeSSH(keyPem []byte, port int) {
 	addr := fmt.Sprintf(":%d", port)
 
@@ -281,29 +299,15 @@ func (s *SSHServer) ServeSSH(keyPem []byte, port int) {
 			"tcpip-forward": s.RemoteForwardHandler,
 		},
 		PublicKeyHandler: func(ctx ssh.Context, pubKey ssh.PublicKey) bool {
+			key, user, err := s.authenticate(pubKey, time.Now())
+			if err != nil {
+				s.log.Warnf("Rejecting ssh key: %v", err)
+				return false
+			}
 			c := getCtx(ctx)
-			sha256Fingerprint := sha256.Sum256(pubKey.Marshal())
-			key, err := s.db.GetSshKeyByFingerprint(sha256Fingerprint[:])
-			if err != nil {
-				s.log.Warnf("Failed to find ssh key")
-				return false
-			}
-			user, err := s.db.GetUserById(key.UserId)
-			if err != nil {
-				s.log.Warnf("Failed to find user: %s", key.UserId)
-				return false
-			}
 			c.SshKeyID = key.Id
-			if key.ExpiresAt == nil {
-				c.SshKeyValid = false
-			} else {
-				c.SshKeyValid = key.ExpiresAt.AsTime().After(time.Now())
-			}
-			if c.SshKeyValid {
-				s.log.Infof("Accepting valid key %s for user %s", key.Name, user.Email)
-			} else {
-				s.log.Infof("Accepting expired key %s for user %s", key.Name, user.Email)
-			}
+			c.SshKeyValid = true
+			s.log.Infof("Accepting valid key %s for user %s", key.Name, user.Email)
 			return true
 		},
 	}

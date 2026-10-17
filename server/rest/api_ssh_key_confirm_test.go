@@ -1,12 +1,15 @@
 package rest
 
 import (
+	"boivie/ubergang/server/auth"
 	"bytes"
 	"crypto/ed25519"
 	"crypto/rand"
 	"encoding/base64"
 	"testing"
+	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/ssh"
 )
@@ -48,7 +51,14 @@ func TestConfirmSshKey(t *testing.T) {
 	if finalConfirmResp.Result == nil {
 		t.Error("Expected result to be set")
 	}
-	if finalConfirmResp.Result.ExpiresAt == "" {
-		t.Errorf("Expected expiresAt to be set")
-	}
+	expiresAt, err := time.Parse(time.RFC3339, finalConfirmResp.Result.ExpiresAt)
+	require.NoError(t, err)
+	assert.WithinDuration(t, time.Now().Add(auth.SshKeyLifetime), expiresAt, time.Minute)
+
+	// Proposing a new public key for it requires confirming it again.
+	_, _ = f.proposeSshKey(key.KeyID, "SECRET", b.String())
+	stored, err := f.Db.GetSshKey(key.KeyID)
+	require.NoError(t, err)
+	assert.Nil(t, stored.ConfirmedAt)
+	assert.Nil(t, stored.ExpiresAt)
 }

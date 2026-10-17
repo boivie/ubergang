@@ -15,6 +15,9 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
+// How long an SSH key can be used after it has been confirmed with a passkey.
+const SshKeyLifetime = 24 * time.Hour
+
 func GenerateSshKey() ([]byte, error) {
 	_, privKey, err := ed25519.GenerateKey(rand.Reader)
 	if err != nil {
@@ -70,7 +73,9 @@ func (s *Auth) UpdateSshKey(keyID, keySecret, pubKey string) (*models.SshKey, er
 
 		old.PublicKey = pubKey
 		old.Sha256Fingerprint = fingerprint[:]
+		// A new public key must be confirmed before it can be used.
 		old.ConfirmedAt = nil
+		old.ExpiresAt = nil
 		return old, nil
 	})
 }
@@ -81,6 +86,7 @@ func (s *Auth) ConfirmSshKeyUpdate(keyID string, now time.Time) (*models.SshKey,
 			return nil, errors.New("Unknown key")
 		}
 		old.ConfirmedAt = timestamppb.New(now)
+		old.ExpiresAt = timestamppb.New(now.Add(SshKeyLifetime))
 		return old, nil
 	})
 }
