@@ -6,6 +6,8 @@ import (
 	"boivie/ubergang/server/log"
 	"boivie/ubergang/server/models"
 	"net"
+	"slices"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -59,7 +61,30 @@ func (s *Auth) CreateUser(email string, displayName string, admin bool, allowedH
 	return
 }
 
+// CanAccessHost returns whether `user` may access the backend at `host`.
+func CanAccessHost(user *models.User, host string) bool {
+	return user.IsAdmin || slices.Contains(user.AllowedHosts, host)
+}
+
+// CreateSession creates a session for the user, valid on the admin host and
+// on all backends the user can access.
 func (s *Auth) CreateSession(userId, userAgent, remoteAddr string) (*models.Session, error) {
+	return s.createSession(userId, userAgent, remoteAddr, func(*models.Session) {})
+}
+
+// CreateKioskSession creates a session for the user that is only valid on the
+// backend at `host`, and only until `expiresAt` unless it's zero.
+func (s *Auth) CreateKioskSession(userId, userAgent, remoteAddr, host, name string, expiresAt time.Time) (*models.Session, error) {
+	return s.createSession(userId, userAgent, remoteAddr, func(session *models.Session) {
+		session.RestrictedHost = strings.ToLower(host)
+		session.Name = name
+		if !expiresAt.IsZero() {
+			session.ExpiresAt = timestamppb.New(expiresAt)
+		}
+	})
+}
+
+func (s *Auth) createSession(userId, userAgent, remoteAddr string, init func(*models.Session)) (*models.Session, error) {
 	user, err := s.db.GetUserById(userId)
 	if err != nil {
 		return nil, err
@@ -79,6 +104,7 @@ func (s *Auth) CreateSession(userId, userAgent, remoteAddr string) (*models.Sess
 		RemoteAddr: remoteAddr,
 		CreatedAt:  timestamppb.New(now),
 	}
+	init(session)
 
 	err = s.db.UpdateSession(session.Id, func(old *models.Session) (*models.Session, error) {
 		if old != nil {

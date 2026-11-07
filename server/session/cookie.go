@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -16,6 +17,9 @@ import (
 )
 
 const trampolineTokenExpiry = time.Minute
+
+// The query parameter that carries a trampoline token to a backend host.
+const TrampolineParam = "_ubergang_token"
 
 type SessionStore struct {
 	log           *log.Log
@@ -34,12 +38,14 @@ func NewSessionStore(log *log.Log, db *db.DB) *SessionStore {
 	return ss
 }
 
+// Get returns the session of the request's cookie, if it's valid and can be
+// used on the host that the request was made to.
 func (s *SessionStore) Get(r *http.Request) (*models.User, *models.Session, error) {
 	c, err := r.Cookie(s.sessionCookie)
 	if err != nil {
 		return nil, nil, err
 	}
-	return s.DecodeSessionCookie(c.Value, true /*validateSecret*/)
+	return s.DecodeSessionCookie(c.Value, r.Host, true /*validateSecret*/)
 }
 
 func (s *SessionStore) ReuseSession(r *http.Request) (*models.User, *models.Session, error) {
@@ -47,7 +53,7 @@ func (s *SessionStore) ReuseSession(r *http.Request) (*models.User, *models.Sess
 	if err != nil {
 		return nil, nil, err
 	}
-	return s.DecodeSessionCookie(c.Value, false /*validateSecret*/)
+	return s.DecodeSessionCookie(c.Value, r.Host, false /*validateSecret*/)
 }
 
 func (s *SessionStore) GetWithUser(r *http.Request) (*models.User, *models.Session, error) {
@@ -55,7 +61,7 @@ func (s *SessionStore) GetWithUser(r *http.Request) (*models.User, *models.Sessi
 	if err != nil {
 		return nil, nil, err
 	}
-	return s.DecodeSessionCookie(c.Value, true /*validateSecret*/)
+	return s.DecodeSessionCookie(c.Value, r.Host, true /*validateSecret*/)
 }
 
 func (s *SessionStore) GetAndValidate(w http.ResponseWriter, r *http.Request) (*models.User, *models.Session, error) {
@@ -69,11 +75,15 @@ func (s *SessionStore) GetAndValidate(w http.ResponseWriter, r *http.Request) (*
 }
 
 func (s *SessionStore) CreateSessionCookie(session *models.Session) *http.Cookie {
+	expires := time.Now().Add(s.sessionExpiry)
+	if session.ExpiresAt != nil {
+		expires = session.ExpiresAt.AsTime()
+	}
 	return &http.Cookie{
 		Name:    s.sessionCookie,
 		Path:    "/",
 		Value:   s.EncodeSessionCookie(session),
-		Expires: time.Now().Add(s.sessionExpiry),
+		Expires: expires,
 		Secure:  true,
 	}
 }
@@ -129,6 +139,20 @@ func (s *SessionStore) CreateTrampolineToken(session *models.Session, host strin
 	return token, nil
 }
 
+// TrampolineURL returns `redirect` with a trampoline token added, which sets
+// the session's cookie on the redirect's host when followed.
+func (s *SessionStore) TrampolineURL(session *models.Session, redirect *url.URL) (string, error) {
+	token, err := s.CreateTrampolineToken(session, redirect.Hostname())
+	if err != nil {
+		return "", err
+	}
+	u := *redirect
+	q := u.Query()
+	q.Set(TrampolineParam, token)
+	u.RawQuery = q.Encode()
+	return u.String(), nil
+}
+
 // ConsumeTrampolineToken exchanges a token created by CreateTrampolineToken
 // for its session, if it was issued for `host` and hasn't expired. The token
 // can't be used again, whether this succeeds or not.
@@ -143,10 +167,31 @@ func (s *SessionStore) ConsumeTrampolineToken(token, host string) (*models.User,
 	if t.ExpiresAt.AsTime().Before(time.Now()) {
 		return nil, nil, errors.New("trampoline token has expired")
 	}
-	return s.db.GetSession(t.SessionId)
+	user, session, err := s.db.GetSession(t.SessionId)
+	if err != nil {
+		return nil, nil, err
+	}
+	if err := usableOn(session, host); err != nil {
+		return nil, nil, err
+	}
+	return user, session, nil
 }
 
-func (s *SessionStore) DecodeSessionCookie(value string, validateSecret bool) (*models.User, *models.Session, error) {
+// usableOn returns an error if `session` can't be used on `host`, because it
+// has expired or because it's restricted to another host.
+func usableOn(session *models.Session, host string) error {
+	if session.ExpiresAt != nil && !time.Now().Before(session.ExpiresAt.AsTime()) {
+		return fmt.Errorf("session %s has expired", session.Id)
+	}
+	if session.RestrictedHost != "" && session.RestrictedHost != normalizeHost(host) {
+		return fmt.Errorf("session %s is restricted to %s, used on %s", session.Id, session.RestrictedHost, host)
+	}
+	return nil
+}
+
+// DecodeSessionCookie returns the session of a cookie's value, if it can be
+// used on `host`.
+func (s *SessionStore) DecodeSessionCookie(value, host string, validateSecret bool) (*models.User, *models.Session, error) {
 	parts := strings.SplitN(value, ":", 2)
 	if len(parts) != 2 {
 		return nil, nil, errors.New("invalid cookie structure")
@@ -158,6 +203,9 @@ func (s *SessionStore) DecodeSessionCookie(value string, validateSecret bool) (*
 
 	if validateSecret && session.Secret != parts[1] {
 		return nil, nil, errors.New("invalid session secret")
+	}
+	if err := usableOn(session, host); err != nil {
+		return nil, nil, err
 	}
 
 	return user, session, nil

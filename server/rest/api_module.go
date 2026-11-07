@@ -3,6 +3,7 @@ package rest
 import (
 	"boivie/ubergang/server/auth"
 	"boivie/ubergang/server/db"
+	"boivie/ubergang/server/kiosk"
 	"boivie/ubergang/server/log"
 	"boivie/ubergang/server/models"
 	"boivie/ubergang/server/mqtt"
@@ -21,6 +22,7 @@ type ApiModule struct {
 	webauthn          *wa.WA
 	mqttProxy         mqtt.ConnectionTracker
 	trustProxyHeaders bool
+	kiosk             *kiosk.Store
 }
 
 func New(config *models.Configuration,
@@ -33,6 +35,7 @@ func New(config *models.Configuration,
 
 	return &ApiModule{
 		config, log, db, session, auth, wa.New(config, db), mqttProxy, trustProxyHeaders,
+		kiosk.NewStore(),
 	}
 }
 
@@ -49,6 +52,11 @@ func (a *ApiModule) RegisterEndpoints(r *mux.Router) {
 	r.Host(a.config.AdminFqdn).Methods("POST").Path("/api/signin/pin/poll").HandlerFunc(a.handleSigninPinPoll)
 	r.Host(a.config.AdminFqdn).Methods("POST").Path("/api/signin/pin/query").HandlerFunc(a.handleSigninPinQuery)
 	r.Host(a.config.AdminFqdn).Methods("POST").Path("/api/signin/pin/confirm").HandlerFunc(a.handleSigninPinConfirm)
+
+	r.Host(a.config.AdminFqdn).Methods("POST").Path("/api/kiosk/request").HandlerFunc(a.handleKioskRequest)
+	r.Host(a.config.AdminFqdn).Methods("POST").Path("/api/kiosk/poll").HandlerFunc(a.handleKioskPoll)
+	r.Host(a.config.AdminFqdn).Methods("POST").Path("/api/kiosk/query").HandlerFunc(a.handleKioskQuery)
+	r.Host(a.config.AdminFqdn).Methods("POST").Path("/api/kiosk/approve").HandlerFunc(a.handleKioskApprove)
 	// SSH keys
 	r.Host(a.config.AdminFqdn).Methods("GET").Path("/api/ssh-key/{id}/confirm").HandlerFunc(a.handleGetSshKeyConfirm)
 	r.Host(a.config.AdminFqdn).Methods("POST").Path("/api/ssh-key/{id}/confirm").HandlerFunc(a.handlePostSshKeyConfirm)

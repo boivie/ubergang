@@ -296,9 +296,14 @@ type Backend struct {
 	PinnedCertificateFingerprint string `protobuf:"bytes,8,opt,name=pinned_certificate_fingerprint,json=pinnedCertificateFingerprint,proto3" json:"pinned_certificate_fingerprint,omitempty"`
 	// Evaluated in order; the first rule whose predicate matches decides the
 	// access. If no rule matches, `access_level` is used.
-	AccessRules   []*AccessRule `protobuf:"bytes,9,rep,name=access_rules,json=accessRules,proto3" json:"access_rules,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	AccessRules []*AccessRule `protobuf:"bytes,9,rep,name=access_rules,json=accessRules,proto3" json:"access_rules,omitempty"`
+	// If set, a device that can't sign in by itself (such as a wall-mounted
+	// tablet) can show a code on the sign-in page, which a signed-in user
+	// approves from another device. The device then gets a session that is
+	// only valid on this backend.
+	AllowKioskSignin bool `protobuf:"varint,10,opt,name=allow_kiosk_signin,json=allowKioskSignin,proto3" json:"allow_kiosk_signin,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *Backend) Reset() {
@@ -394,6 +399,13 @@ func (x *Backend) GetAccessRules() []*AccessRule {
 	return nil
 }
 
+func (x *Backend) GetAllowKioskSignin() bool {
+	if x != nil {
+		return x.AllowKioskSignin
+	}
+	return false
+}
+
 var File_protos_backend_proto protoreflect.FileDescriptor
 
 const file_protos_backend_proto_rawDesc = "" +
@@ -407,7 +419,7 @@ const file_protos_backend_proto_rawDesc = "" +
 	"\tpredicate\x18\x01 \x01(\tR\tpredicate\x120\n" +
 	"\x06action\x18\x02 \x01(\x0e2\x18.models.AccessRuleActionR\x06action\",\n" +
 	"\rScriptHandler\x12\x1b\n" +
-	"\tjs_script\x18\x01 \x01(\tR\bjsScript\"\xd3\x03\n" +
+	"\tjs_script\x18\x01 \x01(\tR\bjsScript\"\x81\x04\n" +
 	"\aBackend\x12\x12\n" +
 	"\x04fqdn\x18\x01 \x01(\tR\x04fqdn\x12!\n" +
 	"\fupstream_url\x18\x02 \x01(\tR\vupstreamUrl\x12(\n" +
@@ -419,7 +431,9 @@ const file_protos_backend_proto_rawDesc = "" +
 	"\faccess_level\x18\x06 \x01(\x0e2\x13.models.AccessLevelR\vaccessLevel\x12<\n" +
 	"\x0escript_handler\x18\a \x01(\v2\x15.models.ScriptHandlerR\rscriptHandler\x12D\n" +
 	"\x1epinned_certificate_fingerprint\x18\b \x01(\tR\x1cpinnedCertificateFingerprint\x125\n" +
-	"\faccess_rules\x18\t \x03(\v2\x12.models.AccessRuleR\vaccessRules*C\n" +
+	"\faccess_rules\x18\t \x03(\v2\x12.models.AccessRuleR\vaccessRules\x12,\n" +
+	"\x12allow_kiosk_signin\x18\n" +
+	" \x01(\bR\x10allowKioskSignin*C\n" +
 	"\vAccessLevel\x12\x1c\n" +
 	"\x18ACCESS_LEVEL_UNSPECIFIED\x10\x00\x12\n" +
 	"\n" +

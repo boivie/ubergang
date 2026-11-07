@@ -115,6 +115,10 @@ func (s *ApiModule) handleBackendUpdate(w http.ResponseWriter, r *http.Request) 
 			old.PinnedCertificateFingerprint = *req.PinnedCertificateFingerprint
 		}
 
+		if req.AllowKioskSignin != nil {
+			old.AllowKioskSignin = *req.AllowKioskSignin
+		}
+
 		old.UpdatedAt = timestamppb.New(now)
 		return old, nil
 	})

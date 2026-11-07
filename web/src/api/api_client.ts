@@ -1,6 +1,8 @@
 import { createContext, useContext } from "react";
 import {
   ApiBackend,
+  ApiApproveKioskSigninRequest,
+  ApiApproveKioskSigninResponse,
   ApiConfirmSigninPinRequest,
   ApiConfirmSigninPinResponse,
   ApiCreateApiKeyRequest,
@@ -17,12 +19,18 @@ import {
   ApiListUsersResponse,
   ApiMqttClient,
   ApiMqttProfile,
+  ApiPollKioskSigninRequest,
+  ApiPollKioskSigninResponse,
   ApiPollSigninPinRequest,
   ApiPollSigninPinResponse,
   ApiPostConfirmSshKeyRequest,
   ApiPostConfirmSshKeyResponse,
+  ApiQueryKioskSigninRequest,
+  ApiQueryKioskSigninResponse,
   ApiQuerySigninPinRequest,
   ApiQuerySigninPinResponse,
+  ApiRequestKioskSigninRequest,
+  ApiRequestKioskSigninResponse,
   ApiRequestSigninPinRequest,
   ApiRequestSigninPinResponse,
   ApiSigninEmailResponse,
@@ -47,6 +55,32 @@ import {
   ApiBootstrapStatusResponse,
   ApiValidateBackendResponse,
 } from "./api_types";
+
+// Thrown when an API call requires the device to be signed in, and it isn't.
+export class NotSignedInError extends Error {
+  constructor() {
+    super("Not signed in");
+    this.name = "NotSignedInError";
+  }
+}
+
+async function postJson<T>(path: string, req: unknown): Promise<T> {
+  const res = await fetch(path, {
+    method: "post",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(req),
+  });
+  if (res.status === 403) {
+    throw new NotSignedInError();
+  }
+  if (!res.ok) {
+    throw new Error(`Request to ${path} failed: ${res.statusText}`);
+  }
+  return res.json();
+}
 
 export interface ApiService {
   GetPasswordlessToken(): Promise<ApiStartSigninResponse>;
@@ -78,6 +112,24 @@ export interface ApiService {
   ConfirmSigninPin(
     req: ApiConfirmSigninPinRequest,
   ): Promise<ApiConfirmSigninPinResponse>;
+
+  RequestKioskSignin(
+    req: ApiRequestKioskSigninRequest,
+  ): Promise<ApiRequestKioskSigninResponse>;
+
+  PollKioskSignin(
+    req: ApiPollKioskSigninRequest,
+  ): Promise<ApiPollKioskSigninResponse>;
+
+  // Throws NotSignedInError if this device isn't signed in.
+  QueryKioskSignin(
+    req: ApiQueryKioskSigninRequest,
+  ): Promise<ApiQueryKioskSigninResponse>;
+
+  // Throws NotSignedInError if this device isn't signed in.
+  ApproveKioskSignin(
+    req: ApiApproveKioskSigninRequest,
+  ): Promise<ApiApproveKioskSigninResponse>;
 
   GetConfirmSshKey(shortKeyId: string): Promise<ApiGetConfirmSshKeyResponse>;
 
@@ -291,6 +343,30 @@ export const realApiService: ApiService = {
       body: JSON.stringify(req),
     });
     return res.json();
+  },
+
+  async RequestKioskSignin(
+    req: ApiRequestKioskSigninRequest,
+  ): Promise<ApiRequestKioskSigninResponse> {
+    return postJson("/api/kiosk/request", req);
+  },
+
+  async PollKioskSignin(
+    req: ApiPollKioskSigninRequest,
+  ): Promise<ApiPollKioskSigninResponse> {
+    return postJson("/api/kiosk/poll", req);
+  },
+
+  async QueryKioskSignin(
+    req: ApiQueryKioskSigninRequest,
+  ): Promise<ApiQueryKioskSigninResponse> {
+    return postJson("/api/kiosk/query", req);
+  },
+
+  async ApproveKioskSignin(
+    req: ApiApproveKioskSigninRequest,
+  ): Promise<ApiApproveKioskSigninResponse> {
+    return postJson("/api/kiosk/approve", req);
   },
 
   async GetConfirmSshKey(

@@ -141,6 +141,7 @@ type ApiBackend struct {
 	AccessRules                  []ApiAccessRule `json:"accessRules"`
 	JsScript                     string          `json:"jsScript"`
 	PinnedCertificateFingerprint string          `json:"pinnedCertificateFingerprint"`
+	AllowKioskSignin             bool            `json:"allowKioskSignin"`
 }
 
 type ApiUpdateBackendRequest struct {
@@ -150,6 +151,7 @@ type ApiUpdateBackendRequest struct {
 	AccessRules                  *[]ApiAccessRule    `json:"accessRules"`
 	JsScript                     string              `json:"jsScript"`
 	PinnedCertificateFingerprint *string             `json:"pinnedCertificateFingerprint"`
+	AllowKioskSignin             *bool               `json:"allowKioskSignin"`
 }
 
 type ApiUpdateBackendResponse struct {
@@ -256,6 +258,105 @@ type ApiQuerySigninPinResponse struct {
 	Token              string                  `json:"token,omitempty"`
 	Confirmed          bool                    `json:"confirmed"`
 	AssertionRequest   *ApiAssertionRequest    `json:"assertionRequest,omitempty"`
+}
+
+// kiosk_request: a kiosk asks to sign in. Not authenticated.
+
+type ApiRequestKioskSigninRequest struct {
+	// The URL on a backend that the kiosk was trying to access.
+	Redirect string `json:"redirect"`
+}
+
+type ApiRequestKioskSigninError struct {
+	// The redirect isn't to a backend that allows kiosk sign-in.
+	NotAllowed      bool `json:"notAllowed,omitempty"`
+	TooManyRequests bool `json:"tooManyRequests,omitempty"`
+}
+
+type ApiRequestKioskSigninSuccess struct {
+	// A secret that the kiosk polls with. Never shown.
+	ID string `json:"id"`
+	// What the kiosk shows, to be entered on ConfirmUrl.
+	Code       string `json:"code"`
+	ConfirmUrl string `json:"confirmUrl"`
+	// A QR code that links to ConfirmUrl with the code.
+	QrCodeUrl string `json:"qrCodeUrl"`
+	ExpiresAt string `json:"expiresAt"`
+}
+
+type ApiRequestKioskSigninResponse struct {
+	Error   *ApiRequestKioskSigninError   `json:"error,omitempty"`
+	Success *ApiRequestKioskSigninSuccess `json:"success,omitempty"`
+}
+
+// kiosk_poll: a kiosk checks if its request has been approved. Not
+// authenticated.
+
+type ApiPollKioskSigninRequest struct {
+	ID string `json:"id"`
+}
+
+type ApiPollKioskSigninResponse struct {
+	// The request hasn't been approved yet.
+	Pending bool `json:"pending,omitempty"`
+	// The request is unknown or has expired, and the kiosk should make a new
+	// one.
+	Expired bool `json:"expired,omitempty"`
+	// The request was approved, and the kiosk should go here to be signed in.
+	Redirect string `json:"redirect,omitempty"`
+}
+
+// kiosk_query: a signed-in user looks up a request to approve it.
+
+type ApiQueryKioskSigninRequest struct {
+	Code string `json:"code"`
+}
+
+type ApiQueryKioskSigninError struct {
+	// No pending request has this code.
+	InvalidCode bool `json:"invalidCode,omitempty"`
+	// The user can't access the backend that the kiosk wants to sign in to.
+	NotAllowed bool `json:"notAllowed,omitempty"`
+	// The user has no passkey to approve the request with.
+	NoCredentials bool `json:"noCredentials,omitempty"`
+	// The user has entered too many invalid codes, and has to wait.
+	TooManyAttempts bool `json:"tooManyAttempts,omitempty"`
+}
+
+type ApiQueryKioskSigninResponse struct {
+	Error              *ApiQueryKioskSigninError `json:"error,omitempty"`
+	Host               string                    `json:"host,omitempty"`
+	RequestorIP        string                    `json:"requestorIp,omitempty"`
+	RequestorUserAgent string                    `json:"requestorUserAgent,omitempty"`
+	RequestedAt        string                    `json:"requestedAt,omitempty"`
+	// The IP address that the approving user is at.
+	ApproverIP string `json:"approverIp,omitempty"`
+	// Whether the kiosk and the approving user seem to be on the same network.
+	SameNetwork      bool                 `json:"sameNetwork"`
+	Token            string               `json:"token,omitempty"`
+	AssertionRequest *ApiAssertionRequest `json:"assertionRequest,omitempty"`
+}
+
+// kiosk_approve: a signed-in user approves a request with a passkey.
+
+type ApiApproveKioskSigninRequest struct {
+	Token      string                 `json:"token"`
+	Credential ApiAssertionCredential `json:"credential"`
+	// A name for the session, e.g. "Kitchen tablet". May be empty.
+	Name string `json:"name"`
+	// How long the session is valid for. Zero means until it's revoked.
+	DurationSeconds int64 `json:"durationSeconds"`
+}
+
+type ApiApproveKioskSigninError struct {
+	// The request expired, or was already approved, before it was approved.
+	Expired           bool `json:"expired,omitempty"`
+	InvalidCredential bool `json:"invalidCredential,omitempty"`
+	InvalidRequest    bool `json:"invalidRequest,omitempty"`
+}
+
+type ApiApproveKioskSigninResponse struct {
+	Error *ApiApproveKioskSigninError `json:"error,omitempty"`
 }
 
 // signin_email
@@ -433,6 +534,11 @@ type ApiSession struct {
 	RemoteAddr string `json:"remoteAddr"`
 	CreatedAt  string `json:"createdAt"`
 	AccessedAt string `json:"accessedAt"`
+	// Set for kiosk sessions, which are only valid on this backend host.
+	RestrictedHost string `json:"restrictedHost,omitempty"`
+	// Set if the session expires.
+	ExpiresAt string `json:"expiresAt,omitempty"`
+	Name      string `json:"name,omitempty"`
 }
 
 type ApiCredential struct {

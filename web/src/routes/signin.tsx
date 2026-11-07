@@ -8,6 +8,7 @@ import {
   ApiSigninEmailResponse,
 } from "../api/api_types";
 import { EmailForm } from "../components/email_form";
+import { KioskSignin } from "../components/kiosk_signin";
 import { useWebauthnService } from "../lib/webauthn-hook";
 import { postSigninRedirect, rdQuery } from "../lib/utils";
 import {
@@ -70,6 +71,7 @@ export default function SignIn() {
   const webauthn = useWebauthnService();
 
   const [state, setState] = useState<State>({ state: "email" });
+  const rd = new URLSearchParams(window.location.search).get("rd");
 
   const startSigninPinFlow = (email: string) => {
     api
@@ -253,6 +255,9 @@ export default function SignIn() {
             <p className="mt-2 text-sm text-slate-600">Secure Proxy</p>
           </div>
           {component}
+          {state.state === "email" && rd?.startsWith("https://") && (
+            <KioskSignin rd={rd} />
+          )}
         </div>
       </div>
     </section>

@@ -47,6 +47,7 @@ export async function EditBackendAction(
   const jsScript = payload.jsScript as string;
   const pinnedCertificateFingerprint =
     (payload.pinnedCertificateFingerprint as string) || "";
+  const allowKioskSignin = payload.allowKioskSignin === "true";
   const headers = headersStr
     .split("\n")
     .filter((h) => h.includes("="))
@@ -63,6 +64,7 @@ export async function EditBackendAction(
       accessRules,
       jsScript,
       pinnedCertificateFingerprint,
+      allowKioskSignin,
     });
   } catch (error) {
     return {
@@ -119,6 +121,9 @@ export default function BackendsEdit() {
   );
   const [jsScript, setJsScript] = useState(backend.jsScript || "");
   const [isScriptExpanded, setIsScriptExpanded] = useState(!!backend.jsScript);
+  const [allowKioskSignin, setAllowKioskSignin] = useState(
+    !!backend.allowKioskSignin,
+  );
   const [pinnedCertificateFingerprint, setPinnedCertificateFingerprint] =
     useState(backend.pinnedCertificateFingerprint || "");
   const [isPinnedCertExpanded, setIsPinnedCertExpanded] = useState(
@@ -263,6 +268,11 @@ export default function BackendsEdit() {
         <input type="hidden" name="accessLevel" value={accessLevel} />
         <input type="hidden" name="accessRules" value={accessRulesStr} />
         <input type="hidden" name="jsScript" value={jsScript} />
+        <input
+          type="hidden"
+          name="allowKioskSignin"
+          value={allowKioskSignin ? "true" : "false"}
+        />
         <input
           type="hidden"
           name="pinnedCertificateFingerprint"
@@ -571,6 +581,29 @@ export default function BackendsEdit() {
               )}
             </span>
           </label>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            Kiosk Sign-in
+          </label>
+          <label className="inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              className="sr-only peer"
+              checked={allowKioskSignin}
+              onChange={(e) => setAllowKioskSignin(e.target.checked)}
+            />
+            <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-hidden peer-focus:ring-4 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:rtl:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+            <span className="ms-3 text-sm font-medium text-slate-700">
+              {allowKioskSignin ? "Allowed" : "Not allowed"}
+            </span>
+          </label>
+          <p className="mt-2 text-sm text-slate-500">
+            Lets a device without a keyboard, such as a wall-mounted tablet,
+            show a code on the sign-in page that you approve from a signed-in
+            device. The device can then only access this backend.
+          </p>
         </div>
 
         <div>

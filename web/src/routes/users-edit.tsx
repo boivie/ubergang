@@ -28,6 +28,8 @@ import { ApiService, useApiService } from "../api/api_client";
 import { ApiUser, ApiBackend } from "../api/api_types";
 import { StyledComboBox, StyledItem } from "../components/StyledComboBox";
 import { relative_date } from "../lib/date_utils";
+import { KioskBadge, SessionLimits } from "../components/session_info";
+import { sessionTitle } from "../lib/session_utils";
 
 export async function EditUserLoader(api: ApiService, userId: string) {
   const [user, backends] = await Promise.all([
@@ -448,7 +450,8 @@ export default function UsersEdit() {
                   </div>
                   <div className="flex min-h-8 flex-1 flex-col items-start justify-center gap-0 overflow-hidden">
                     <h4 className="w-full truncate text-base text-slate-700">
-                      {browser.name} on {os.name}
+                      {sessionTitle(session, browser, os)}
+                      <KioskBadge session={session} />
                       {session.id === user.currentSession?.id && (
                         <span className="ml-2 text-xs text-white bg-blue-500 rounded-full px-2 py-1">
                           Current
@@ -458,6 +461,7 @@ export default function UsersEdit() {
                     <p className="w-full truncate text-sm text-slate-500">
                       Last used {session.accessedAt} from {session.remoteAddr}
                     </p>
+                    <SessionLimits session={session} />
                   </div>
                   <div>
                     <DialogTrigger>

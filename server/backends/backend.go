@@ -25,6 +25,9 @@ type Backend interface {
 	URL() *url.URL
 	JsScript() *goja.Program
 	PinnedCertificateFingerprint() string
+	// Whether kiosk sessions, which are only valid on this backend, can be
+	// created and used.
+	AllowKioskSignin() bool
 }
 
 type BackendManager struct {
@@ -59,6 +62,7 @@ func (b *localBackend) JsScript() *goja.Program      { return b.program }
 func (b *localBackend) PinnedCertificateFingerprint() string {
 	return b.backend.PinnedCertificateFingerprint
 }
+func (b *localBackend) AllowKioskSignin() bool { return b.backend.AllowKioskSignin }
 
 func (b *localBackend) DialContext(ctx context.Context, network, address string) (net.Conn, error) {
 	newAddress := b.url.Host

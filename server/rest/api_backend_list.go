@@ -70,6 +70,7 @@ func ToBackend(b *models.Backend) api.ApiBackend {
 		AccessRules:                  accessRules,
 		JsScript:                     jsScript,
 		PinnedCertificateFingerprint: b.PinnedCertificateFingerprint,
+		AllowKioskSignin:             b.AllowKioskSignin,
 	}
 }
 
