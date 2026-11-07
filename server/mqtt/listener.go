@@ -25,7 +25,11 @@ type MqttProxy struct {
 }
 
 func New(log *log.Log, config *models.Configuration, db *db.DB, tlsManager ugtls.TlsManager, brokerAddress string) *MqttProxy {
-	return &MqttProxy{log, config, db, NewTracker(db, log), tlsManager, brokerAddress}
+	tracker := NewTracker(db, log)
+	// Run the tracker even if the proxy isn't started, as the REST API queries
+	// it, and would block otherwise.
+	go tracker.Run()
+	return &MqttProxy{log, config, db, tracker, tlsManager, brokerAddress}
 }
 
 type pendingSubscription struct {
@@ -150,7 +154,6 @@ func (s *MqttProxy) handleClientConnection(connectionType ConnectionType, client
 }
 
 func (s *MqttProxy) Start(port int, tlsPort int) {
-	go s.tracker.Run()
 	go s.listen(port)
 	go s.listenTLS(port)
 }
