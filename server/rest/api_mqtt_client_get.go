@@ -7,7 +7,7 @@ import (
 )
 
 func (s *ApiModule) handleMqttClientGet(w http.ResponseWriter, r *http.Request) {
-	_, _, err := s.session.GetAndValidate(w, r)
+	user, _, err := s.session.GetAndValidate(w, r)
 	if err != nil {
 		return
 	}
@@ -22,5 +22,5 @@ func (s *ApiModule) handleMqttClientGet(w http.ResponseWriter, r *http.Request) 
 	}
 
 	jsonify(w, toMqttClient(client,
-		s.mqttProxy.GetActiveConnections()[client.Id]))
+		s.mqttProxy.GetActiveConnections()[client.Id], user.IsAdmin))
 }
