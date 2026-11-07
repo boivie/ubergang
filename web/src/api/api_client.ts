@@ -3,11 +3,14 @@ import {
   ApiBackend,
   ApiConfirmSigninPinRequest,
   ApiConfirmSigninPinResponse,
+  ApiCreateApiKeyRequest,
+  ApiCreateApiKeyResponse,
   ApiCreateUserRequest,
   ApiCreateUserResponse,
   ApiFinishEnrollRequest,
   ApiFinishEnrollResponse,
   ApiGetConfirmSshKeyResponse,
+  ApiListApiKeysResponse,
   ApiListBackendsResponse,
   ApiListMqttClientsResponse,
   ApiListMqttProfilesResponse,
@@ -117,6 +120,12 @@ export interface ApiService {
   DeleteUser(userId: string): Promise<void>;
 
   RecoverUser(userId: string): Promise<ApiUserRecoverResponse>;
+
+  ListApiKeys(): Promise<ApiListApiKeysResponse>;
+
+  CreateApiKey(req: ApiCreateApiKeyRequest): Promise<ApiCreateApiKeyResponse>;
+
+  DeleteApiKey(id: string): Promise<void>;
 
   ListMqttProfiles(): Promise<ApiListMqttProfilesResponse>;
 
@@ -465,6 +474,44 @@ export const realApiService: ApiService = {
       throw new Error(`Failed to generate recovery URL: ${res.statusText}`);
     }
     return res.json();
+  },
+
+  async ListApiKeys(): Promise<ApiListApiKeysResponse> {
+    const res = await fetch("/api/api-key", {
+      method: "get",
+      headers: { Accept: "application/json" },
+    });
+    if (!res.ok) {
+      throw new Error(`Failed to list API keys: ${res.statusText}`);
+    }
+    return res.json();
+  },
+
+  async CreateApiKey(
+    req: ApiCreateApiKeyRequest,
+  ): Promise<ApiCreateApiKeyResponse> {
+    const res = await fetch("/api/api-key", {
+      method: "post",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(req),
+    });
+    if (!res.ok) {
+      throw new Error(`Failed to create API key: ${res.statusText}`);
+    }
+    return res.json();
+  },
+
+  async DeleteApiKey(id: string): Promise<void> {
+    const res = await fetch(`/api/api-key/${encodeURIComponent(id)}`, {
+      method: "delete",
+      headers: { Accept: "application/json" },
+    });
+    if (!res.ok) {
+      throw new Error(`Failed to delete API key: ${res.statusText}`);
+    }
   },
 
   async ListMqttProfiles(): Promise<ApiListMqttProfilesResponse> {

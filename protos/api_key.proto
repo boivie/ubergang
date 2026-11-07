@@ -1,0 +1,28 @@
+syntax = "proto3";
+package models;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "./server/models";
+
+// Scopes are ordered: each scope grants everything the ones before it do.
+enum ApiKeyScope {
+  API_KEY_SCOPE_UNSPECIFIED = 0;
+  API_KEY_SCOPE_READ = 1;
+  API_KEY_SCOPE_WRITE = 2;
+  API_KEY_SCOPE_ADMIN = 3;
+}
+
+// A long-lived key for the public API. It isn't bound to a user. The token
+// handed out is "ug_<id>_<secret>"; only a hash of the secret is stored.
+// Ref: "api-key:$id" -> ApiKey
+message ApiKey {
+  string id = 1;
+  string name = 2;
+  bytes secret_sha256 = 3;
+  ApiKeyScope scope = 4;
+  google.protobuf.Timestamp created_at = 5;
+  // The admin that created the key. For auditing only.
+  string created_by_user_id = 6;
+  google.protobuf.Timestamp last_used_at = 7;
+}

@@ -14,6 +14,9 @@ import NewBackendComponent, {
   NewBackendAction,
 } from "./routes/backends-new.tsx";
 import NewUserComponent, { NewUserAction } from "./routes/users-new.tsx";
+import NewApiKeyComponent, {
+  NewApiKeyAction,
+} from "./routes/users-api-key-new.tsx";
 import BackendListComponent, {
   BackendlistAction,
   BackendlistLoader,
@@ -163,6 +166,12 @@ const router = createBrowserRouter([
         path: "/users/new",
         action: (args) => NewUserAction(api, args),
         element: <NewUserComponent />,
+        handle: { tabid: "users" },
+      },
+      {
+        path: "/users/api-keys/new",
+        action: (args) => NewApiKeyAction(api, args),
+        element: <NewApiKeyComponent />,
         handle: { tabid: "users" },
       },
       {

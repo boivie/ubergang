@@ -74,6 +74,12 @@ func (a *ApiModule) RegisterEndpoints(r *mux.Router) {
 	// MQTT Import/Export
 	r.Host(a.config.AdminFqdn).Methods("POST").Path("/api/mqtt/import").HandlerFunc(a.handleMqttImport)
 	r.Host(a.config.AdminFqdn).Methods("GET").Path("/api/mqtt/export").HandlerFunc(a.handleMqttExport)
+	// API keys
+	r.Host(a.config.AdminFqdn).Methods("GET").Path("/api/api-key").HandlerFunc(a.handleApiKeyList)
+	r.Host(a.config.AdminFqdn).Methods("POST").Path("/api/api-key").HandlerFunc(a.handleApiKeyCreate)
+	r.Host(a.config.AdminFqdn).Methods("DELETE").Path("/api/api-key/{id}").HandlerFunc(a.handleApiKeyDelete)
+	// Public API, authenticated with API keys
+	a.registerPublicEndpoints(r)
 	// Credentials
 	r.Host(a.config.AdminFqdn).Methods("POST").Path("/api/credential/{id}").HandlerFunc(a.handleCredentialUpdate)
 	r.Host(a.config.AdminFqdn).Methods("DELETE").Path("/api/credential/{id}").HandlerFunc(a.handleCredentialDelete)
