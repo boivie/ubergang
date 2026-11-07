@@ -8,7 +8,9 @@ import (
 	"sort"
 )
 
-func toMqttClient(c *models.MqttClient, connState *mqtt.ClientConnectionState) api.ApiMqttClient {
+// toMqttClient converts `c` for the internal API. The password is only
+// included if `includePassword` is set, which must only be done for admins.
+func toMqttClient(c *models.MqttClient, connState *mqtt.ClientConnectionState, includePassword bool) api.ApiMqttClient {
 	var connected *api.ApiMqttConnected = nil
 	var disconnected *api.ApiMqttDisconnected = nil
 
@@ -25,18 +27,21 @@ func toMqttClient(c *models.MqttClient, connState *mqtt.ClientConnectionState) a
 		}
 	}
 
-	return api.ApiMqttClient{
+	ret := api.ApiMqttClient{
 		Id:           c.Id,
 		ProfileId:    c.ProfileId,
-		Password:     c.Password,
 		Values:       c.Values,
 		Connected:    connected,
 		Disconnected: disconnected,
 	}
+	if includePassword {
+		ret.Password = c.Password
+	}
+	return ret
 }
 
 func (s *ApiModule) handleMqttClientList(w http.ResponseWriter, r *http.Request) {
-	_, _, err := s.session.GetAndValidate(w, r)
+	user, _, err := s.session.GetAndValidate(w, r)
 	if err != nil {
 		return
 	}
@@ -45,7 +50,7 @@ func (s *ApiModule) handleMqttClientList(w http.ResponseWriter, r *http.Request)
 
 	clients := make([]api.ApiMqttClient, 0)
 	for _, c := range s.db.ListMqttClients() {
-		clients = append(clients, toMqttClient(c, connectedClients[c.Id]))
+		clients = append(clients, toMqttClient(c, connectedClients[c.Id], user.IsAdmin))
 	}
 	sort.Slice(clients, func(i, j int) bool {
 		return clients[i].Id < clients[j].Id
