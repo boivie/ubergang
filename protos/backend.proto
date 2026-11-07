@@ -56,4 +56,9 @@ message Backend {
   // Evaluated in order; the first rule whose predicate matches decides the
   // access. If no rule matches, `access_level` is used.
   repeated AccessRule access_rules = 9;
+  // If set, a device that can't sign in by itself (such as a wall-mounted
+  // tablet) can show a code on the sign-in page, which a signed-in user
+  // approves from another device. The device then gets a session that is
+  // only valid on this backend.
+  bool allow_kiosk_signin = 10;
 }

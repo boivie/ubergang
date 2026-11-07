@@ -25,13 +25,19 @@ func ToApiCredential(c *models.Credential) api.ApiCredential {
 }
 
 func ToApiSession(s *models.Session) api.ApiSession {
-	return api.ApiSession{
-		ID:         s.Id,
-		UserAgent:  s.UserAgent,
-		RemoteAddr: s.RemoteAddr,
-		CreatedAt:  s.CreatedAt.AsTime().Format(time.RFC3339),
-		AccessedAt: "",
+	ret := api.ApiSession{
+		ID:             s.Id,
+		UserAgent:      s.UserAgent,
+		RemoteAddr:     s.RemoteAddr,
+		CreatedAt:      s.CreatedAt.AsTime().Format(time.RFC3339),
+		AccessedAt:     "",
+		RestrictedHost: s.RestrictedHost,
+		Name:           s.Name,
 	}
+	if s.ExpiresAt != nil {
+		ret.ExpiresAt = s.ExpiresAt.AsTime().Format(time.RFC3339)
+	}
+	return ret
 }
 
 func ToApiSshKey(key *models.SshKey) api.ApiSSHKey {

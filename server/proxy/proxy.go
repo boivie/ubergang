@@ -2,6 +2,7 @@ package proxy
 
 import (
 	"boivie/ubergang/server/access"
+	"boivie/ubergang/server/auth"
 	"boivie/ubergang/server/backends"
 	"boivie/ubergang/server/log"
 	"boivie/ubergang/server/models"
@@ -83,18 +84,6 @@ func (s *Proxy) serveHandleTrampoline(w http.ResponseWriter, r *http.Request) bo
 	return true
 }
 
-func isAllowed(user *models.User, host string) bool {
-	if user.IsAdmin {
-		return true
-	}
-	for _, allowed := range user.AllowedHosts {
-		if allowed == host {
-			return true
-		}
-	}
-	return false
-}
-
 func (s *Proxy) ProxyHandler(w http.ResponseWriter, r *http.Request) {
 	if s.serveHandleTrampoline(w, r) {
 		return
@@ -127,7 +116,14 @@ func (s *Proxy) ProxyHandler(w http.ResponseWriter, r *http.Request) {
 			s.redirectAuthorizeInvalidSession(w, r)
 			return
 		}
-		if !isAllowed(user, backend.Host()) {
+		if session.RestrictedHost != "" && !backend.AllowKioskSignin() {
+			// Kiosk sign-in has been turned off for this backend since the
+			// session was created.
+			s.log.Infof("Kiosk session %s is no longer allowed on %s", session.Id, backend.Host())
+			s.redirectAuthorizeInvalidSession(w, r)
+			return
+		}
+		if !auth.CanAccessHost(user, backend.Host()) {
 			s.log.Warnf("User %s is not allowed to access %s", user.Email, backend.Host())
 			http.Error(w, "Forbidden", http.StatusForbidden)
 			return

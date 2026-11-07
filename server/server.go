@@ -392,6 +392,7 @@ func (b *localFrontend) JsScript() *goja.Program {
 func (b *localFrontend) PinnedCertificateFingerprint() string {
 	return ""
 }
+func (b *localFrontend) AllowKioskSignin() bool { return false }
 func (b *localFrontend) DialContext(ctx context.Context, network, address string) (net.Conn, error) {
 	return (&net.Dialer{
 		Timeout:   2 * time.Second,

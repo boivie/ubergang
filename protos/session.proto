@@ -14,4 +14,11 @@ message Session {
   string user_agent = 4;
   string remote_addr = 5;
   google.protobuf.Timestamp created_at = 6;
+  // If set, the session is only valid on this backend host. Kiosk sessions
+  // are restricted like this, so that they can't be used on the admin host.
+  string restricted_host = 7;
+  // If set, the session isn't valid after this time.
+  google.protobuf.Timestamp expires_at = 8;
+  // A name given to the session when it was approved, e.g. "Kitchen tablet".
+  string name = 9;
 }

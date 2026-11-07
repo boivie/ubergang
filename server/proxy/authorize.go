@@ -1,13 +1,13 @@
 package proxy
 
 import (
+	"boivie/ubergang/server/session"
 	"fmt"
 	"net/http"
 	"net/url"
 )
 
-// The query parameter that carries a trampoline token to a backend host.
-const trampolineParam = "_ubergang_token"
+const trampolineParam = session.TrampolineParam
 
 func (s *Proxy) redirectsigninInvalidSession(w http.ResponseWriter, r *http.Request) {
 	redirect := r.URL.Query().Get("rd")
@@ -16,13 +16,13 @@ func (s *Proxy) redirectsigninInvalidSession(w http.ResponseWriter, r *http.Requ
 }
 
 func (s *Proxy) HandleAuthorize(w http.ResponseWriter, r *http.Request) {
-	_, session, err := s.session.Get(r)
+	_, sess, err := s.session.Get(r)
 	if err != nil {
 		s.log.Infof("Failed to find session: %v", err)
 		s.redirectsigninInvalidSession(w, r)
 		return
 	}
-	s.updateAccessed <- session
+	s.updateAccessed <- sess
 
 	redirect := r.URL.Query().Get("rd")
 	if redirect == "" {
@@ -46,14 +46,11 @@ func (s *Proxy) HandleAuthorize(w http.ResponseWriter, r *http.Request) {
 
 	// Redirect to the trampoline, so that it can set the cookie and bind it to
 	// the correct domain.
-	token, err := s.session.CreateTrampolineToken(session, u.Hostname())
+	target, err := s.session.TrampolineURL(sess, u)
 	if err != nil {
 		s.log.Warnf("Failed to create trampoline token: %v", err)
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
-	q := u.Query()
-	q.Set(trampolineParam, token)
-	u.RawQuery = q.Encode()
-	http.Redirect(w, r, u.String(), http.StatusFound)
+	http.Redirect(w, r, target, http.StatusFound)
 }

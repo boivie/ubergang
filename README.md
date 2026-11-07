@@ -28,6 +28,9 @@ with an embedded database and zero external dependencies.
 - **Web UI**: Modern React frontend for configuration and management.
 - **Public API**: Provision MQTT profiles and clients with scoped API keys. See
   [docs/public-api.md](docs/public-api.md).
+- **Kiosk Sign-in**: Sign in devices without a keyboard, such as a wall-mounted
+  tablet, by approving a code from your phone. Opt-in per backend, and the
+  device can only access that backend.
 
 ## Quick Start
 

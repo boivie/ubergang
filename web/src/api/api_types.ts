@@ -123,6 +123,7 @@ export interface ApiBackend {
   accessRules: ApiAccessRule[];
   jsScript: string;
   pinnedCertificateFingerprint: string;
+  allowKioskSignin: boolean;
 }
 
 export interface ApiUpdateBackendRequest {
@@ -132,6 +133,7 @@ export interface ApiUpdateBackendRequest {
   accessRules?: ApiAccessRule[];
   jsScript?: string;
   pinnedCertificateFingerprint?: string;
+  allowKioskSignin?: boolean;
 }
 
 export type ApiUpdateBackendResponse = Record<string, never>;
@@ -251,6 +253,71 @@ export interface ApiQuerySigninPinResponse {
   token?: string;
   confirmed: boolean;
   assertionRequest?: ApiAssertionRequest;
+}
+
+export interface ApiRequestKioskSigninRequest {
+  redirect: string;
+}
+
+export interface ApiRequestKioskSigninResponse {
+  error?: {
+    notAllowed?: boolean;
+    tooManyRequests?: boolean;
+  };
+  success?: {
+    id: string;
+    code: string;
+    confirmUrl: string;
+    qrCodeUrl: string;
+    expiresAt: string;
+  };
+}
+
+export interface ApiPollKioskSigninRequest {
+  id: string;
+}
+
+export interface ApiPollKioskSigninResponse {
+  pending?: boolean;
+  expired?: boolean;
+  redirect?: string;
+}
+
+export interface ApiQueryKioskSigninRequest {
+  code: string;
+}
+
+export interface ApiQueryKioskSigninResponse {
+  error?: {
+    invalidCode?: boolean;
+    notAllowed?: boolean;
+    noCredentials?: boolean;
+    tooManyAttempts?: boolean;
+  };
+  host?: string;
+  requestorIp?: string;
+  requestorUserAgent?: string;
+  requestedAt?: string;
+  approverIp?: string;
+  sameNetwork: boolean;
+  token?: string;
+  assertionRequest?: ApiAssertionRequest;
+}
+
+export interface ApiApproveKioskSigninRequest {
+  token: string;
+  credential: ApiAssertionCredential;
+  name: string;
+  // Zero means until it's revoked.
+  durationSeconds: number;
+}
+
+export interface ApiApproveKioskSigninResponse {
+  error?: {
+    expired?: boolean;
+    invalidCredential?: boolean;
+    invalidRequest?: boolean;
+  };
 }
 
 export interface ApiSignInEmailRequest {
@@ -406,6 +473,10 @@ export interface ApiSession {
   remoteAddr: string;
   createdAt: string;
   accessedAt: string;
+  // Set for kiosk sessions, which are only valid on this backend host.
+  restrictedHost?: string;
+  expiresAt?: string;
+  name?: string;
 }
 
 export interface ApiCredential {

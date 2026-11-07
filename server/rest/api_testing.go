@@ -89,6 +89,9 @@ func (f *Fixture) CreateBackend(cookie *http.Cookie, backend *api.ApiBackend) *h
 	if backend.AccessRules != nil {
 		req.AccessRules = &backend.AccessRules
 	}
+	if backend.AllowKioskSignin {
+		req.AllowKioskSignin = &backend.AllowKioskSignin
+	}
 	resp := &api.ApiUpdateBackendResponse{}
 	return f.request("POST", "/api/backend/"+backend.Fqdn, req, cookie, resp)
 }

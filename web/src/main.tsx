@@ -67,6 +67,10 @@ import SessionEditComponent, {
   SessionEditLoader,
 } from "./routes/sessions-edit.tsx";
 import SetupComponent from "./routes/setup.tsx";
+import KioskComponent from "./routes/kiosk.tsx";
+import KioskApproveComponent, {
+  KioskApproveLoader,
+} from "./routes/kiosk-approve.tsx";
 import { postSigninRedirect } from "./lib/utils.tsx";
 
 const api = realApiService;
@@ -215,6 +219,15 @@ const router = createBrowserRouter([
     path: "/confirm/:pin",
     loader: ({ params }) => ConfirmPinLoader(api, params.pin!),
     element: <ConfirmPinComponent />,
+  },
+  {
+    path: "/kiosk/",
+    element: <KioskComponent />,
+  },
+  {
+    path: "/kiosk/:code",
+    loader: ({ params }) => KioskApproveLoader(api, params.code!),
+    element: <KioskApproveComponent />,
   },
 ]);
 

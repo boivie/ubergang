@@ -17,6 +17,8 @@ import { UAParser } from "ua-parser-js";
 import { ApiService } from "../api/api_client";
 import { ApiSession } from "../api/api_types";
 import { relative_date } from "../lib/date_utils";
+import { KioskBadge } from "../components/session_info";
+import { sessionTitle } from "../lib/session_utils";
 
 export async function SessionEditLoader(
   api: ApiService,
@@ -54,7 +56,8 @@ export default function SessionsEdit() {
         <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
           <div>
             <h3 className="text-lg leading-6 font-medium text-gray-900">
-              {browser.name} on {os.name}
+              {sessionTitle(session, browser, os)}
+              <KioskBadge session={session} />
             </h3>
             <p className="mt-1 max-w-2xl text-sm text-gray-500">
               Session ID: {session.id}
@@ -84,6 +87,24 @@ export default function SessionsEdit() {
                 {relative_date(new Date(session.createdAt), now)})
               </dd>
             </div>
+            {session.restrictedHost && (
+              <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt className="text-sm font-medium text-gray-500">
+                  Restricted To
+                </dt>
+                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                  {session.restrictedHost}
+                </dd>
+              </div>
+            )}
+            {session.expiresAt && (
+              <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt className="text-sm font-medium text-gray-500">Expires</dt>
+                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                  {new Date(session.expiresAt).toLocaleString()}
+                </dd>
+              </div>
+            )}
             <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
               <dt className="text-sm font-medium text-gray-500">
                 Last Accessed At
