@@ -28,3 +28,20 @@ export function base64Decode(base64UrlSafe: string) {
 
   return arrayBuffer;
 }
+
+// Where to go after signing in. A protected backend sends the user to the
+// sign-in page with `?rd=<url>`, and going through /authorize then sets the
+// session cookie on that backend's host before redirecting to `rd`.
+export function postSigninRedirect(
+  search: string = window.location.search,
+): string {
+  const rd = new URLSearchParams(search).get("rd");
+  return rd ? "/authorize?rd=" + encodeURIComponent(rd) : "/";
+}
+
+// The `?rd=` query string of the current page, to carry it over to another
+// page in the sign-in flow. Empty if there is none.
+export function rdQuery(search: string = window.location.search): string {
+  const rd = new URLSearchParams(search).get("rd");
+  return rd ? "?rd=" + encodeURIComponent(rd) : "";
+}

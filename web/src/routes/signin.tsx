@@ -9,6 +9,7 @@ import {
 } from "../api/api_types";
 import { EmailForm } from "../components/email_form";
 import { useWebauthnService } from "../lib/webauthn-hook";
+import { postSigninRedirect, rdQuery } from "../lib/utils";
 import {
   IconLoader2,
   IconExclamationCircle,
@@ -81,7 +82,7 @@ export default function SignIn() {
           console.log("Failed to request signin pin", res.error);
           setState({ state: "request-signin-error" });
         } else {
-          window.location.href = "/signin/" + res.id;
+          window.location.href = "/signin/" + res.id + rdQuery();
         }
       });
   };
@@ -139,7 +140,7 @@ export default function SignIn() {
     const signinResult = await api.SignInWebauthn({
       token,
       credential,
-      redirect: "/",
+      redirect: postSigninRedirect(),
     });
     handleSignedIn(signinResult);
   };
