@@ -67,6 +67,7 @@ import SessionEditComponent, {
   SessionEditLoader,
 } from "./routes/sessions-edit.tsx";
 import SetupComponent from "./routes/setup.tsx";
+import { postSigninRedirect } from "./lib/utils.tsx";
 
 const api = realApiService;
 const router = createBrowserRouter([
@@ -198,7 +199,12 @@ const router = createBrowserRouter([
 
   {
     path: "/signin/:token",
-    loader: ({ params }) => SigninTokenLoader(api, params.token!),
+    loader: ({ params, request }) =>
+      SigninTokenLoader(
+        api,
+        params.token!,
+        postSigninRedirect(new URL(request.url).search),
+      ),
     element: <SigninTokenComponent />,
   },
   {

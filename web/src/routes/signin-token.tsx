@@ -8,9 +8,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { redirect, useLoaderData, useParams } from "react-router";
 import { ApiService, useApiService } from "../api/api_client";
 import { ApiPollSigninPinResponse } from "../api/api_types";
+import { postSigninRedirect, rdQuery } from "../lib/utils";
 
-export async function SigninTokenLoader(api: ApiService, token: string) {
-  const res = await api.PollLoginRequest({ id: token, redirect: "/" });
+export async function SigninTokenLoader(
+  api: ApiService,
+  token: string,
+  redirectTo: string,
+) {
+  const res = await api.PollLoginRequest({ id: token, redirect: redirectTo });
   if (res.success) {
     if (res.success.cookie) {
       document.cookie = res.success.cookie;
@@ -37,7 +42,7 @@ export default function SigninToken() {
     try {
       const response = await api.PollLoginRequest({
         id: token!,
-        redirect: "/",
+        redirect: postSigninRedirect(),
       });
 
       lastSuccessfulPollRef.current = Date.now();
@@ -158,7 +163,7 @@ export default function SigninToken() {
           </div>
         </div>
         <a
-          href="/signin"
+          href={"/signin" + rdQuery()}
           className="block w-full px-4 py-2 text-sm font-medium text-white text-center border border-transparent rounded-md shadow-xs bg-emerald-600 hover:bg-emerald-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
         >
           Sign in again
