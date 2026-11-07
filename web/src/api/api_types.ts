@@ -194,6 +194,32 @@ export interface ApiListUsersResponse {
   users: ApiUser[];
 }
 
+export type ApiKeyScope = "read" | "write" | "admin";
+
+export interface ApiApiKey {
+  id: string;
+  name: string;
+  scope: ApiKeyScope;
+  createdAt: string;
+  createdBy?: string;
+  lastUsedAt?: string;
+}
+
+export interface ApiListApiKeysResponse {
+  apiKeys: ApiApiKey[];
+}
+
+export interface ApiCreateApiKeyRequest {
+  name: string;
+  scope: ApiKeyScope;
+}
+
+export interface ApiCreateApiKeyResponse {
+  apiKey: ApiApiKey;
+  // Only returned when the key is created.
+  token: string;
+}
+
 export interface ApiConfirmSigninPinRequest {
   token: string;
   credential: ApiAssertionCredential;

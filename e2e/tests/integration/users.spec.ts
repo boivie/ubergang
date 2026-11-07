@@ -48,6 +48,46 @@ test.describe("User Management Tests", () => {
     await expect(userItem).toBeVisible();
   });
 
+  test("create, use and delete an API key", async ({ page }) => {
+    await page.goto("/users/");
+    await expect(page.getByText("No API keys yet.")).toBeVisible();
+    await page.getByRole("link", { name: "New API key" }).click();
+    await expect(page).toHaveURL("/users/api-keys/new");
+
+    await page.fill("input#name", "Provisioning");
+    await page.getByLabel("Read and write").check();
+    await page.getByRole("button", { name: "Create API key" }).click();
+
+    // The token is only shown once.
+    const token = await page.getByTestId("api-key-token").inputValue();
+    expect(token).toMatch(/^ug_[a-z2-7]+_[a-z2-7]+$/);
+
+    const res = await page.request.get("/api/v1/mqtt/profiles", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    expect(res.status()).toBe(200);
+    expect(await res.json()).toEqual({ profiles: [] });
+
+    await page.getByRole("link", { name: "Done" }).click();
+    await testHelper.expectToBeOnUsers();
+    const keyItem = page.locator("ul li").filter({ hasText: "Provisioning" });
+    await expect(keyItem).toContainText("read + write");
+    await expect(keyItem).toContainText("hello@example.com");
+    await expect(page.getByText(token)).not.toBeVisible();
+
+    await page
+      .getByRole("button", { name: "Delete API key Provisioning" })
+      .click();
+    const dialog = page.getByRole("alertdialog");
+    await dialog.getByRole("button", { name: "Remove" }).click();
+    await expect(keyItem).not.toBeVisible();
+
+    const after = await page.request.get("/api/v1/mqtt/profiles", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    expect(after.status()).toBe(401);
+  });
+
   test.describe("when a user is created", () => {
     let userId: string;
 

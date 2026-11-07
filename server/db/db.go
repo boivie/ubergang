@@ -27,6 +27,11 @@ type DB struct {
 
 var BucketName = []byte("ug")
 
+var (
+	ErrMqttProfileNotFound = errors.New("MQTT profile not found")
+	ErrMqttProfileInUse    = errors.New("MQTT profile is in use")
+)
+
 func New(log *log.Log, dbFile string) (*DB, error) {
 
 	db, err := bolt.Open(dbFile, 0600, &bolt.Options{
@@ -121,6 +126,10 @@ func mqttProfileKey(id string) []byte {
 
 func mqttClientKey(id string) []byte {
 	return []byte(fmt.Sprintf("mqtt-client:%s", id))
+}
+
+func apiKeyKey(id string) []byte {
+	return []byte(fmt.Sprintf("api-key:%s", id))
 }
 
 func (d *DB) GetCert(name string) (cert []byte, err error) {
@@ -851,6 +860,61 @@ func (d *DB) ConsumeTrampolineToken(token string) (ret *models.TrampolineToken, 
 	return
 }
 
+func (d *DB) GetApiKey(id string) (ret *models.ApiKey, err error) {
+	err = d.db.View(func(tx *bolt.Tx) error {
+		v := tx.Bucket(BucketName).Get(apiKeyKey(id))
+		if v == nil {
+			return errors.New("API key not found")
+		}
+		ret = &models.ApiKey{}
+		return proto.Unmarshal(v, ret)
+	})
+	return
+}
+
+func (d *DB) ListApiKeys() (ret []*models.ApiKey) {
+	_ = d.db.View(func(tx *bolt.Tx) error {
+		c := tx.Bucket(BucketName).Cursor()
+		prefix := []byte("api-key:")
+		for k, v := c.Seek(prefix); k != nil && bytes.HasPrefix(k, prefix); k, v = c.Next() {
+			p := &models.ApiKey{}
+			if err := proto.Unmarshal(v, p); err == nil {
+				ret = append(ret, p)
+			}
+		}
+		return nil
+	})
+	return
+}
+
+// UpdateApiKey calls `update_fn` with the current key (nil if it doesn't
+// exist) and stores what it returns. Returning nil deletes the key.
+func (d *DB) UpdateApiKey(id string, update_fn func(old *models.ApiKey) (*models.ApiKey, error)) error {
+	return d.db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket(BucketName)
+		key := apiKeyKey(id)
+		var old_obj *models.ApiKey
+		if v := b.Get(key); v != nil {
+			old_obj = &models.ApiKey{}
+			if err := proto.Unmarshal(v, old_obj); err != nil {
+				return err
+			}
+		}
+		new_obj, err := update_fn(old_obj)
+		if err != nil {
+			return err
+		}
+		if new_obj == nil {
+			return b.Delete(key)
+		}
+		serialized, err := proto.Marshal(new_obj)
+		if err != nil {
+			return err
+		}
+		return b.Put(key, serialized)
+	})
+}
+
 func (d *DB) ClearDatabase() error {
 	return d.db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket(BucketName)
@@ -971,7 +1035,7 @@ func (d *DB) UpdateMqttProfile(id string, update_fn func(old *models.MqttProfile
 				err := proto.Unmarshal(v, p)
 				if err == nil {
 					if p.ProfileId == id {
-						return fmt.Errorf("cannot delete MQTT profile %s, it is in use by client %s", id, p.Id)
+						return fmt.Errorf("%w by client %s", ErrMqttProfileInUse, p.Id)
 					}
 				}
 			}
@@ -1037,7 +1101,7 @@ func (d *DB) UpdateMqttClient(id string, update_fn func(old *models.MqttClient) 
 		// Validate that the profile exists.
 		v = b.Get(mqttProfileKey(new_obj.ProfileId))
 		if v == nil {
-			return fmt.Errorf("profile not found")
+			return ErrMqttProfileNotFound
 		}
 		serialized, err := proto.Marshal(new_obj)
 		if err != nil {

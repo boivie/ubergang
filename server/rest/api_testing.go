@@ -27,15 +27,21 @@ type Fixture struct {
 	Auth    *auth.Auth
 	router  *mux.Router
 	Db      *db.DB
+	Mqtt    *FakeMqttConnectionTracker
 }
 
-type FakeMqttConnectionTracker struct{}
+type FakeMqttConnectionTracker struct {
+	// The client IDs that DisconnectClient was called with.
+	Disconnected []string
+}
 
 func (f *FakeMqttConnectionTracker) GetActiveConnections() map[string]*mqtt.ClientConnectionState {
 	return make(map[string]*mqtt.ClientConnectionState)
 }
 
-func (f *FakeMqttConnectionTracker) DisconnectClient(clientId string) {}
+func (f *FakeMqttConnectionTracker) DisconnectClient(clientId string) {
+	f.Disconnected = append(f.Disconnected, clientId)
+}
 
 func CreateFixture(t *testing.T) *Fixture {
 	config := &models.Configuration{
@@ -52,14 +58,17 @@ func CreateFixture(t *testing.T) *Fixture {
 	if err != nil {
 		panic(err)
 	}
-	api := New(config, db, log, session, auth, &FakeMqttConnectionTracker{}, false)
+	mqttTracker := &FakeMqttConnectionTracker{}
+	api := New(config, db, log, session, auth, mqttTracker, false)
 	router := mux.NewRouter()
 	api.RegisterEndpoints(router)
 	return &Fixture{
-		session,
-		auth,
-		router,
-		db}
+		Session: session,
+		Auth:    auth,
+		router:  router,
+		Db:      db,
+		Mqtt:    mqttTracker,
+	}
 }
 
 func (f *Fixture) getUser(cookie *http.Cookie, id string) *api.ApiUser {
@@ -139,6 +148,46 @@ func (f *Fixture) GetMqttClient(cookie *http.Cookie, id string) *api.ApiMqttClie
 
 func (f *Fixture) DeleteMqttClient(cookie *http.Cookie, id string) *httptest.ResponseRecorder {
 	return f.request("DELETE", "/api/mqtt-client/"+id, nil, cookie, nil)
+}
+
+func (f *Fixture) CreateApiKey(cookie *http.Cookie, name, scope string) (*api.ApiCreateApiKeyResponse, *httptest.ResponseRecorder) {
+	resp := &api.ApiCreateApiKeyResponse{}
+	rr := f.request("POST", "/api/api-key", &api.ApiCreateApiKeyRequest{Name: name, Scope: scope}, cookie, resp)
+	return resp, rr
+}
+
+func (f *Fixture) ListApiKeys(cookie *http.Cookie) []api.ApiApiKey {
+	resp := &api.ApiListApiKeysResponse{}
+	f.request("GET", "/api/api-key", nil, cookie, resp)
+	return resp.ApiKeys
+}
+
+func (f *Fixture) DeleteApiKey(cookie *http.Cookie, id string) *httptest.ResponseRecorder {
+	return f.request("DELETE", "/api/api-key/"+id, nil, cookie, nil)
+}
+
+// publicRequest calls the public API with `token` as bearer token (unless
+// empty) and a JSON body (unless nil). On success, the response is decoded
+// into `res` (unless nil).
+func (f *Fixture) publicRequest(method, url, token string, body interface{}, res interface{}) *httptest.ResponseRecorder {
+	buf := bytes.Buffer{}
+	if body != nil {
+		_ = json.NewEncoder(&buf).Encode(body)
+	}
+	httpReq, _ := http.NewRequest(method, url, &buf)
+	httpReq.Host = "test.example.com"
+	if body != nil {
+		httpReq.Header.Set("Content-Type", "application/json")
+	}
+	if token != "" {
+		httpReq.Header.Set("Authorization", "Bearer "+token)
+	}
+	rr := httptest.NewRecorder()
+	f.router.ServeHTTP(rr, httpReq)
+	if rr.Code >= 200 && rr.Code < 300 && res != nil {
+		_ = json.NewDecoder(rr.Body).Decode(res)
+	}
+	return rr
 }
 
 func (f *Fixture) ListUsers(cookie *http.Cookie) []api.ApiUser {

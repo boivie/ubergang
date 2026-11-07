@@ -528,3 +528,86 @@ type ApiValidateBackendResponse struct {
 	Error            string           `json:"error,omitempty"`
 	Certificates     []ApiCertificate `json:"certificates,omitempty"`
 }
+
+// api_key (internal API, used by the web UI to manage keys)
+
+type ApiApiKey struct {
+	Id         string `json:"id"`
+	Name       string `json:"name"`
+	Scope      string `json:"scope"`
+	CreatedAt  string `json:"createdAt"`
+	CreatedBy  string `json:"createdBy,omitempty"`
+	LastUsedAt string `json:"lastUsedAt,omitempty"`
+}
+
+type ApiListApiKeysResponse struct {
+	ApiKeys []ApiApiKey `json:"apiKeys"`
+}
+
+type ApiCreateApiKeyRequest struct {
+	Name  string `json:"name"`
+	Scope string `json:"scope"`
+}
+
+type ApiCreateApiKeyResponse struct {
+	ApiKey ApiApiKey `json:"apiKey"`
+	// The only time the token is returned.
+	Token string `json:"token"`
+}
+
+// Public API (v1), authenticated with an API key.
+
+type PublicError struct {
+	Error PublicErrorDetails `json:"error"`
+}
+
+type PublicErrorDetails struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
+}
+
+type PublicMqttProfile struct {
+	Id             string   `json:"id"`
+	AllowPublish   []string `json:"allow_publish"`
+	AllowSubscribe []string `json:"allow_subscribe"`
+}
+
+type PublicListMqttProfilesResponse struct {
+	Profiles []PublicMqttProfile `json:"profiles"`
+}
+
+type PublicCreateMqttProfileRequest struct {
+	Id             string   `json:"id"`
+	AllowPublish   []string `json:"allow_publish"`
+	AllowSubscribe []string `json:"allow_subscribe"`
+}
+
+type PublicUpdateMqttProfileRequest struct {
+	AllowPublish   *[]string `json:"allow_publish"`
+	AllowSubscribe *[]string `json:"allow_subscribe"`
+}
+
+type PublicMqttClient struct {
+	Id        string `json:"id"`
+	ProfileId string `json:"profile_id"`
+	// Only included for keys with write scope.
+	Password string            `json:"password,omitempty"`
+	Values   map[string]string `json:"values"`
+}
+
+type PublicListMqttClientsResponse struct {
+	Clients []PublicMqttClient `json:"clients"`
+}
+
+type PublicCreateMqttClientRequest struct {
+	Id        string            `json:"id"`
+	ProfileId string            `json:"profile_id"`
+	Password  string            `json:"password"`
+	Values    map[string]string `json:"values"`
+}
+
+type PublicUpdateMqttClientRequest struct {
+	ProfileId *string            `json:"profile_id"`
+	Password  *string            `json:"password"`
+	Values    *map[string]string `json:"values"`
+}

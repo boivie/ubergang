@@ -26,6 +26,8 @@ with an embedded database and zero external dependencies.
   management.
 - **Single Binary**: No external database or complex dependencies required.
 - **Web UI**: Modern React frontend for configuration and management.
+- **Public API**: Provision MQTT profiles and clients with scoped API keys. See
+  [docs/public-api.md](docs/public-api.md).
 
 ## Quick Start
 
