@@ -16,6 +16,7 @@ import (
 	"mime"
 	"net/http"
 	"net/http/httputil"
+	"net/url"
 	"strings"
 	"time"
 
@@ -48,10 +49,10 @@ func New(
 }
 
 func (s *Proxy) redirectAuthorizeInvalidSession(w http.ResponseWriter, r *http.Request) {
-	redirect := r.URL.RequestURI()
-	url := fmt.Sprintf("https://%s/authorize?rd=https://%s%s",
-		s.config.AdminFqdn, r.Host, redirect)
-	http.Redirect(w, r, url, http.StatusFound)
+	redirect := "https://" + r.Host + r.URL.RequestURI()
+	target := fmt.Sprintf("https://%s/authorize?rd=%s",
+		s.config.AdminFqdn, url.QueryEscape(redirect))
+	http.Redirect(w, r, target, http.StatusFound)
 }
 
 func (s *Proxy) serveHandleTrampoline(w http.ResponseWriter, r *http.Request) bool {

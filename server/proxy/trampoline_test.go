@@ -56,6 +56,18 @@ func TestAuthorizeRedirectsToBackendWithToken(t *testing.T) {
 	assert.NotContains(t, location, session.Secret)
 }
 
+func TestUnauthenticatedRequestRedirectsToAuthorize(t *testing.T) {
+	f := setupProxy(t, models.AccessLevel_NORMAL)
+	rr := do(f, "GET", "/some/path?a=1&b=2")
+	require.Equal(t, http.StatusFound, rr.Code)
+	u, err := url.Parse(rr.Header().Get("Location"))
+	require.NoError(t, err)
+	assert.Equal(t, "admin.example.com", u.Host)
+	assert.Equal(t, "/authorize", u.Path)
+	// The whole URL is kept, including all of its query parameters.
+	assert.Equal(t, "https://"+fqdn+"/some/path?a=1&b=2", u.Query().Get("rd"))
+}
+
 func TestAuthorizeRejectsInvalidRedirects(t *testing.T) {
 	for _, rd := range []string{
 		"https://evil.example.com/",
