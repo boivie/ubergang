@@ -1,6 +1,6 @@
 module boivie/ubergang
 
-go 1.26.9
+go 1.26.10
 
 require (
 	cel.dev/cel-go v0.32.0
