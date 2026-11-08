@@ -13,6 +13,9 @@ users and backend services, enforcing authentication and authorization policies.
 
 ### Backend
 
+- **`cmd/ugctl/`** - Command-line client for the public API (`/api/v1`),
+  documented in `docs/cli.md` and released with GoReleaser
+  (`.goreleaser.yaml`, `.github/workflows/release.yml`)
 - **`server/`** - Main server implementation and business logic
   - **`api/`** - API type definitions and interfaces
   - **`auth/`** - Authentication services (WebAuthn, SSH keys)
@@ -80,6 +83,12 @@ go build -o ubergang .
 
 # Run tests
 go test ./...
+
+# Build the CLI (doesn't need the frontend build)
+go build -o ugctl ./cmd/ugctl
+
+# Build the CLI release archives locally, without publishing
+goreleaser release --snapshot --clean
 ```
 
 ### Frontend Development
