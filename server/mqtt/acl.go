@@ -3,7 +3,6 @@ package mqtt
 import (
 	"boivie/ubergang/server/models"
 	"log"
-	"regexp"
 	"strings"
 )
 
@@ -14,11 +13,12 @@ const (
 	BLOCKED
 )
 
+// ACL holds a client's profile topics, with the client's values ($ID,
+// $SERIALNO, ...) substituted. Entries are MQTT topic filters: "+" matches
+// one level and a trailing "#" matches any number of levels, including none.
 type ACL struct {
-	AllowPublish   []*regexp.Regexp
-	BlockPublish   []*regexp.Regexp
+	AllowPublish   []string
 	AllowSubscribe []string
-	BlockSubscribe []string
 }
 
 func NewACL(clientConfig *models.MqttClient, clientProfile *models.MqttProfile) (*ACL, error) {
@@ -35,34 +35,14 @@ func NewACL(clientConfig *models.MqttClient, clientProfile *models.MqttProfile) 
 		return s
 	}
 
-	makeRegex := func(pattern string) (*regexp.Regexp, error) {
-		pattern = strings.ReplaceAll(pattern, "+", "[^/]+")
-		pattern = strings.ReplaceAll(pattern, "/#", "/.+")
-		return regexp.Compile(pattern)
-	}
-
 	c := &ACL{}
-
 	for _, topic := range clientProfile.AllowPublish {
-		re, err := makeRegex(subst(topic))
-		if err != nil {
-			return nil, err
-		}
-		c.AllowPublish = append(c.AllowPublish, re)
+		c.AllowPublish = append(c.AllowPublish, subst(topic))
 	}
 	for _, topic := range clientProfile.AllowSubscribe {
 		c.AllowSubscribe = append(c.AllowSubscribe, subst(topic))
 	}
 	return c, nil
-}
-
-func contains(s []string, e string) bool {
-	for _, a := range s {
-		if a == e {
-			return true
-		}
-	}
-	return false
 }
 
 func ClassificationToString(c Classification) string {
@@ -77,29 +57,63 @@ func ClassificationToString(c Classification) string {
 	}
 }
 
+// ValidatePublishTopic allows a topic name if it matches one of the allowed
+// publish filters in full.
 func (a *ACL) ValidatePublishTopic(topic string) Classification {
-	for _, pattern := range a.AllowPublish {
-		if pattern.MatchString(topic) {
+	if strings.ContainsAny(topic, "+#") {
+		return BLOCKED // wildcards aren't valid in topic names
+	}
+	for _, filter := range a.AllowPublish {
+		if filterCovers(filter, topic) {
 			return ALLOWED
 		}
 	}
 	return BLOCKED
 }
 
-func (a *ACL) FilterValidSubscribeTopics(topics []string) (allowed []string) {
-	for _, topic := range topics {
-		if contains(a.AllowSubscribe, topic) {
-			allowed = append(allowed, topic)
-		}
-	}
-	return
-}
-
-func (a *ACL) ValidateSubscribeTopic(topic string) Classification {
-	for _, t := range a.AllowSubscribe {
-		if t == topic {
+// ValidateSubscribeTopic allows a subscription filter if every topic it can
+// match is also matched by one of the allowed subscribe filters, so a
+// subscription never reaches beyond what the profile allows.
+func (a *ACL) ValidateSubscribeTopic(filter string) Classification {
+	for _, allowed := range a.AllowSubscribe {
+		if filterCovers(allowed, filter) {
 			return ALLOWED
 		}
 	}
 	return BLOCKED
+}
+
+// filterCovers reports whether every topic matched by sub (a topic name or a
+// topic filter) is also matched by the topic filter allowed.
+func filterCovers(allowed, sub string) bool {
+	if allowed == "" || sub == "" {
+		return false
+	}
+	a := strings.Split(allowed, "/")
+	s := strings.Split(sub, "/")
+
+	// Wildcards at the first level don't match topics starting with "$"
+	// (MQTT 3.1.1 section 4.7.2), such as $SYS/...
+	if strings.HasPrefix(s[0], "$") && (a[0] == "#" || a[0] == "+") {
+		return false
+	}
+
+	for i, al := range a {
+		if al == "#" {
+			return i == len(a)-1 // "#" is only valid as the last level
+		}
+		if i >= len(s) {
+			return false
+		}
+		sl := s[i]
+		switch {
+		case sl == "#":
+			return false // sub matches deeper topics that allowed doesn't
+		case al == "+":
+			// Matches any single level, literal or "+".
+		case sl != al:
+			return false
+		}
+	}
+	return len(s) == len(a)
 }
