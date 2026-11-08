@@ -49,12 +49,16 @@ type Publisher struct {
 }
 
 // NewPublisher creates a new MQTT publisher and starts connection management
-func NewPublisher(log *log.Log, brokerAddress string) MQTTPublisher {
+func NewPublisher(log *log.Log, brokerAddress string, creds BrokerCredentials) MQTTPublisher {
 	clientID := fmt.Sprintf("ubergang-server-%s", uuid.New().String()[:8])
 
 	opts := mqtt.NewClientOptions()
 	opts.AddBroker("tcp://" + brokerAddress)
 	opts.SetClientID(clientID)
+	if creds.Username != "" {
+		opts.SetUsername(creds.Username)
+		opts.SetPassword(creds.Password)
+	}
 	opts.SetCleanSession(true)
 	opts.SetAutoReconnect(true)
 	opts.SetConnectRetry(true)
