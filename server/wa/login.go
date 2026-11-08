@@ -87,7 +87,6 @@ func (s *WA) ValidateAssertion(cred *api.ApiAssertionCredential, state *models.A
 		UserID:               []byte(state.UserId),
 		AllowedCredentialIDs: state.AllowedCredentials,
 		Expires:              state.ExpiresAt.AsTime(),
-		Extensions:           map[string]interface{}{},
 	}
 
 	var decoded []byte

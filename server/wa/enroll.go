@@ -78,13 +78,16 @@ func (w *WA) CreateCredential(user *models.User, sess *models.Session, state *mo
 		AllowedCredentialIDs: state.AllowedCredentials,
 		Expires:              state.ExpiresAt.AsTime(),
 		UserVerification:     protocol.UserVerificationRequirement(state.UserVerification),
-		Extensions:           map[string]interface{}{},
 		CredParams:           webauthn.CredentialParametersDefault(),
 	}
 
 	response := protocol.CredentialCreationResponse{}
 	response.Type = "public-key"
 	response.ID = attestationResponse.ID
+	response.RawID, err = base64.RawURLEncoding.DecodeString(attestationResponse.ID)
+	if err != nil {
+		return
+	}
 	clientDecoded, _ := base64.RawURLEncoding.DecodeString(attestationResponse.ClientDataJSON)
 	response.AttestationResponse.ClientDataJSON = protocol.URLEncodedBase64(clientDecoded)
 	decoded, _ := base64.RawURLEncoding.DecodeString(attestationResponse.AttestationObject)
