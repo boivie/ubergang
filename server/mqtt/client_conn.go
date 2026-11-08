@@ -77,7 +77,7 @@ func (c *connection) handleBrokerConn() {
 			}
 
 		case *packets.PublishPacket:
-			subscribeMessagesMetric.WithLabelValues(c.clientConfig.Id).Inc()
+			subscribeMessagesMetric.WithLabelValues(c.clientConfig.Id, c.clientConfig.ProfileId).Inc()
 			_ = packet.Write(c.clientConn)
 		case *packets.UnsubackPacket:
 			_ = packet.Write(c.clientConn)
