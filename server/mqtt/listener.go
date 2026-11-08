@@ -22,14 +22,15 @@ type MqttProxy struct {
 	tracker       *Tracker
 	certManager   ugtls.TlsManager
 	brokerAddress string
+	brokerCreds   BrokerCredentials
 }
 
-func New(log *log.Log, config *models.Configuration, db *db.DB, tlsManager ugtls.TlsManager, brokerAddress string) *MqttProxy {
+func New(log *log.Log, config *models.Configuration, db *db.DB, tlsManager ugtls.TlsManager, brokerAddress string, brokerCreds BrokerCredentials) *MqttProxy {
 	tracker := NewTracker(db, log)
 	// Run the tracker even if the proxy isn't started, as the REST API queries
 	// it, and would block otherwise.
 	go tracker.Run()
-	return &MqttProxy{log, config, db, tracker, tlsManager, brokerAddress}
+	return &MqttProxy{log, config, db, tracker, tlsManager, brokerAddress, brokerCreds}
 }
 
 type pendingSubscription struct {
@@ -119,7 +120,7 @@ func (s *MqttProxy) handleClientConnection(connectionType ConnectionType, client
 	password := string(connect.Password)
 	acl, clientConfig, err := s.authorizeConnection(connect.Username, password)
 	if err != nil {
-		s.log.Warnf("mqtt: Failed to authorize connection (%s/%s): %v from %s", connect.Username, password, err, clientConn.RemoteAddr())
+		s.log.Warnf("mqtt: Failed to authorize connection (%s): %v from %s", connect.Username, err, clientConn.RemoteAddr())
 		connectionErrorMetric.WithLabelValues("failed_auth").Inc()
 		_ = connectionRefused().Write(clientConn)
 		return

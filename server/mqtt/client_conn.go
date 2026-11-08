@@ -2,7 +2,6 @@ package mqtt
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"net"
 	"strings"
@@ -103,9 +102,7 @@ func (c *connection) serveClient(connect *packets.ConnectPacket) {
 	logg("Serving client")
 
 	// Send CONNECT to broker
-	connect.Username = ""
-	connect.Password = []byte{}
-	connect.ClientIdentifier = fmt.Sprintf("ug-%s", c.clientConfig.Id)
+	rewriteConnectForBroker(connect, c.clientConfig.Id, c.parent.brokerCreds)
 	if connect.WillFlag {
 		willAcl := c.acl.ValidatePublishTopic(connect.WillTopic)
 		logg("Will topic set to %s (%s)", connect.WillTopic, ClassificationToString(willAcl))

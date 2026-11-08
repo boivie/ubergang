@@ -51,6 +51,8 @@ var flgMetricsPort = flag.Int("metrics", 9090, "Port for metrics server")
 var flgMqttPort = flag.Int("mqtt", 1883, "Port for MQTT proxy server")
 var flgMqttTlsPort = flag.Int("mqtt-tls", 8883, "Port for MQTT TLS proxy server")
 var flgMqttServer = flag.String("mqtt-server", "", "MQTT server")
+var flgMqttUsername = flag.String("mqtt-username", "", "Username for connecting to the MQTT server (needs --mqtt-password-file)")
+var flgMqttPasswordFile = flag.String("mqtt-password-file", "", "File holding the password for connecting to the MQTT server")
 var flgLocalDev = flag.Bool("local-dev", false, "Local development")
 var flgVerbose = flag.Bool("verbose", false, "Verbose logs")
 var flgTrustProxyHeaders = flag.Bool("trust-proxy-headers", false,
@@ -176,13 +178,17 @@ func NewServer(db *db.DB, assets *embed.FS) *Server {
 	session := session.NewSessionStore(log, db)
 	auth := auth.New(log, db)
 	updateAccessed := make(chan *models.Session)
-	mqttProxy := mqtt.New(log, config, db, tlsManager, *flgMqttServer)
+	brokerCreds, err := mqtt.LoadBrokerCredentials(*flgMqttUsername, *flgMqttPasswordFile)
+	if err != nil {
+		log.Fatalf("Invalid MQTT broker credentials: %v", err)
+	}
+	mqttProxy := mqtt.New(log, config, db, tlsManager, *flgMqttServer, brokerCreds)
 
 	// Create MQTT publisher if broker is configured
 	var mqttPublisher mqtt.MQTTPublisher = nil
 	if *flgMqttServer != "" {
-		mqttPublisher = mqtt.NewPublisher(log, *flgMqttServer)
-		log.Infof("Created MQTT publisher for broker %s", *flgMqttServer)
+		mqttPublisher = mqtt.NewPublisher(log, *flgMqttServer, brokerCreds)
+		log.Infof("Created MQTT publisher for broker %s (authenticated: %v)", *flgMqttServer, brokerCreds.Username != "")
 	}
 
 	s := &Server{
