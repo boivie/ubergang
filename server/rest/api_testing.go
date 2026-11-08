@@ -71,6 +71,12 @@ func CreateFixture(t *testing.T) *Fixture {
 	}
 }
 
+// ServeHTTP serves the API, such as for an httptest.Server. The Host header
+// must be the admin host, "test.example.com".
+func (f *Fixture) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	f.router.ServeHTTP(w, r)
+}
+
 func (f *Fixture) getUser(cookie *http.Cookie, id string) *api.ApiUser {
 	resp := &api.ApiUser{}
 	f.request("GET", "/api/user/"+id, nil, cookie, resp)

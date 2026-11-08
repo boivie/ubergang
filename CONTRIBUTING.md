@@ -13,6 +13,7 @@ contributions help make Ubergang better for the homelab community.
 - [Development Setup](#development-setup)
 - [Project Structure](#project-structure)
 - [Submitting Changes](#submitting-changes)
+- [Releasing](#releasing)
 - [Reporting Bugs](#reporting-bugs)
 - [Suggesting Features](#suggesting-features)
 
@@ -125,6 +126,7 @@ npm test
 
 ```txt
 ubergang/
+├── cmd/ugctl/        # Command-line client for the public API
 ├── server/           # Go backend
 │   ├── api/         # API interfaces
 │   ├── auth/        # Authentication (WebAuthn, SSH)
@@ -191,6 +193,28 @@ git push origin feature/my-new-feature
 NOTE: We don't allow merge commits. Rewrite your branch and amend your commits
 after fixing code review comments. Your commits will be cherry-picked/rebased
 onto the main branch.
+
+## Releasing
+
+Releases follow [Semantic Versioning](https://semver.org/). Pushing a tag
+such as `v1.2.0` runs `.github/workflows/release.yml`, which uses
+[GoReleaser](https://goreleaser.com) to build `ugctl` for Linux, macOS and
+Windows, and publishes the archives, a checksum file and release notes
+generated from the merged pull requests as a GitHub release. Each archive gets
+a signed build provenance attestation. Tags with a suffix, such as
+`v1.2.0-rc.1`, are marked as pre-releases.
+
+```bash
+git tag -a v1.2.0 -m "v1.2.0"
+git push origin v1.2.0
+```
+
+CI builds the same archives for every pull request, without publishing them,
+and uploads them as the `ugctl-snapshot` artifact. To build them locally:
+
+```bash
+goreleaser release --snapshot --clean
+```
 
 ## Reporting Bugs
 

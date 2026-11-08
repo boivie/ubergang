@@ -1,7 +1,8 @@
 # Public API
 
 Ubergang has a small public API for automation, such as provisioning MQTT
-clients from a script. It's served on the admin host under `/api/v1/`.
+clients from a script. It's served on the admin host under `/api/v1/`. The
+[`ugctl`](cli.md) command-line client covers all of it.
 
 ## Authentication
 
