@@ -32,6 +32,12 @@ const scopes: { value: ApiKeyScope; label: string; description: string }[] = [
     description:
       "Also create, change and delete MQTT profiles and clients, and read and set client passwords.",
   },
+  {
+    value: "admin",
+    label: "Admin",
+    description:
+      "Also download database backups. A backup contains every secret on this server, so treat this key like full admin access.",
+  },
 ];
 
 function CreatedApiKey({ created }: { created: ApiCreateApiKeyResponse }) {

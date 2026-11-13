@@ -26,14 +26,15 @@ func apiKeyScopeName(scope models.ApiKeyScope) string {
 	return ""
 }
 
-// parseApiKeyScope parses the scopes that keys can be created with. "admin"
-// isn't one of them until there are endpoints that need it.
+// parseApiKeyScope parses the scopes that keys can be created with.
 func parseApiKeyScope(name string) (models.ApiKeyScope, bool) {
 	switch name {
 	case "read":
 		return models.ApiKeyScope_API_KEY_SCOPE_READ, true
 	case "write":
 		return models.ApiKeyScope_API_KEY_SCOPE_WRITE, true
+	case "admin":
+		return models.ApiKeyScope_API_KEY_SCOPE_ADMIN, true
 	}
 	return models.ApiKeyScope_API_KEY_SCOPE_UNSPECIFIED, false
 }

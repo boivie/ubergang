@@ -67,6 +67,8 @@ ugctl login [url]
 ugctl logout
 ugctl version
 
+ugctl backup <file>
+
 ugctl mqtt profiles list
 ugctl mqtt profiles get <id>
 ugctl mqtt profiles create <id> [--publish TOPIC]... [--subscribe TOPIC]...
@@ -89,6 +91,14 @@ command-line arguments.
 In `update`, flags that aren't given leave things unchanged. The given topics
 replace a profile's topics, and the given values replace all of a client's
 values. Run `ugctl <command> --help` for details.
+
+`backup` needs a key with the `admin` scope. It writes to `<file>`, or to
+stdout if it's `-`. The file is created with mode `0600` and is only replaced
+once the download has completed, so it's safe to run from cron:
+
+```sh
+ugctl backup "/var/backups/ubergang-$(date +%F).db"
+```
 
 ### Example
 
