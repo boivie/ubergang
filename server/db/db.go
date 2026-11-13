@@ -9,10 +9,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"net/http"
 	"os"
 	"path"
-	"strconv"
 	"strings"
 	"time"
 
@@ -951,21 +949,6 @@ func (d *DB) Backup(w io.Writer, start func(size int64)) error {
 		_, err := tx.WriteTo(w)
 		return err
 	})
-}
-
-func (d *DB) BackupHttpHandler() func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		err := d.db.View(func(tx *bolt.Tx) error {
-			w.Header().Set("Content-Type", "application/octet-stream")
-			w.Header().Set("Content-Disposition", `attachment; filename="ubergang.db"`)
-			w.Header().Set("Content-Length", strconv.Itoa(int(tx.Size())))
-			_, err := tx.WriteTo(w)
-			return err
-		})
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
-	}
 }
 
 func (d *DB) PerformPeriodicBackups(directory string, interval time.Duration) {
