@@ -66,7 +66,7 @@ func TestCreateApiKeyValidation(t *testing.T) {
 		{"   ", "read"},
 		{strings.Repeat("x", 101), "read"},
 		{"test", ""},
-		{"test", "admin"},
+		{"test", "ADMIN"},
 		{"test", "READ"},
 	} {
 		_, rr := f.CreateApiKey(admin, tc.name, tc.scope)

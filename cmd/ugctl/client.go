@@ -18,6 +18,8 @@ import (
 const (
 	publicApiPrefix  = "/api/v1"
 	maxResponseBytes = 16 << 20
+	// requestTimeout applies to JSON requests, but not to backups.
+	requestTimeout = 30 * time.Second
 )
 
 // apiError is an error response from the public API.
@@ -41,7 +43,6 @@ func newClient(baseURL, apiKey string) *client {
 		baseURL: baseURL,
 		apiKey:  apiKey,
 		http: &http.Client{
-			Timeout: 30 * time.Second,
 			// Never follow redirects, as the API doesn't use them. A redirect
 			// means that the URL isn't the admin host, and following it
 			// could send the API key elsewhere.
@@ -90,23 +91,23 @@ func isLoopback(host string) bool {
 	return ip != nil && ip.IsLoopback()
 }
 
-// do sends a request to the public API. `body` is sent as JSON unless nil, and
-// a successful response is decoded into `out` unless nil.
-func (c *client) do(ctx context.Context, method, path string, body, out any) error {
+// send sends a request to the public API, with `body` as JSON unless nil, and
+// returns the response if it's successful. The caller must close its body.
+func (c *client) send(ctx context.Context, method, path string, body any, accept string) (*http.Response, error) {
 	var reqBody io.Reader
 	if body != nil {
 		data, err := json.Marshal(body)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		reqBody = bytes.NewReader(data)
 	}
 	req, err := http.NewRequestWithContext(ctx, method, c.baseURL+publicApiPrefix+path, reqBody)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	req.Header.Set("Authorization", "Bearer "+c.apiKey)
-	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Accept", accept)
 	req.Header.Set("User-Agent", "ugctl/"+version)
 	if body != nil {
 		req.Header.Set("Content-Type", "application/json")
@@ -114,24 +115,37 @@ func (c *client) do(ctx context.Context, method, path string, body, out any) err
 
 	resp, err := c.http.Do(req)
 	if err != nil {
-		return fmt.Errorf("request to %s failed: %w", c.baseURL, err)
+		return nil, fmt.Errorf("request to %s failed: %w", c.baseURL, err)
+	}
+	if resp.StatusCode < 300 {
+		return resp, nil
+	}
+	defer func() { _ = resp.Body.Close() }()
+	if resp.StatusCode < 400 {
+		return nil, fmt.Errorf("%s redirected to %q; is it the URL of the admin host?",
+			c.baseURL, resp.Header.Get("Location"))
+	}
+	data, _ := io.ReadAll(io.LimitReader(resp.Body, maxResponseBytes))
+	var e api.PublicError
+	if json.Unmarshal(data, &e) == nil && e.Error.Code != "" {
+		return nil, &apiError{status: resp.StatusCode, code: e.Error.Code, message: e.Error.Message}
+	}
+	return nil, fmt.Errorf("unexpected response from %s: %s", c.baseURL, resp.Status)
+}
+
+// do sends a request to the public API. `body` is sent as JSON unless nil, and
+// a successful response is decoded into `out` unless nil.
+func (c *client) do(ctx context.Context, method, path string, body, out any) error {
+	ctx, cancel := context.WithTimeout(ctx, requestTimeout)
+	defer cancel()
+	resp, err := c.send(ctx, method, path, body, "application/json")
+	if err != nil {
+		return err
 	}
 	defer func() { _ = resp.Body.Close() }()
 	data, err := io.ReadAll(io.LimitReader(resp.Body, maxResponseBytes))
 	if err != nil {
 		return fmt.Errorf("reading the response from %s failed: %w", c.baseURL, err)
-	}
-
-	switch {
-	case resp.StatusCode >= 300 && resp.StatusCode < 400:
-		return fmt.Errorf("%s redirected to %q; is it the URL of the admin host?",
-			c.baseURL, resp.Header.Get("Location"))
-	case resp.StatusCode >= 400:
-		var e api.PublicError
-		if json.Unmarshal(data, &e) == nil && e.Error.Code != "" {
-			return &apiError{status: resp.StatusCode, code: e.Error.Code, message: e.Error.Message}
-		}
-		return fmt.Errorf("unexpected response from %s: %s", c.baseURL, resp.Status)
 	}
 	if out != nil {
 		if err := json.Unmarshal(data, out); err != nil {
@@ -139,6 +153,26 @@ func (c *client) do(ctx context.Context, method, path string, body, out any) err
 		}
 	}
 	return nil
+}
+
+// downloadBackup writes a database backup to `w`. There's no overall timeout,
+// as the database can be large.
+func (c *client) downloadBackup(ctx context.Context, w io.Writer) (int64, error) {
+	resp, err := c.send(ctx, http.MethodGet, "/backup", nil, "application/octet-stream")
+	if err != nil {
+		return 0, err
+	}
+	defer func() { _ = resp.Body.Close() }()
+	if ct := resp.Header.Get("Content-Type"); ct != "application/octet-stream" {
+		return 0, fmt.Errorf("unexpected response from %s: Content-Type %q", c.baseURL, ct)
+	}
+	// A body that is shorter than its Content-Length is reported as an error,
+	// which is how the server signals a backup that failed midway.
+	n, err := io.Copy(w, resp.Body)
+	if err != nil {
+		return n, fmt.Errorf("downloading the backup from %s failed: %w", c.baseURL, err)
+	}
+	return n, nil
 }
 
 func resourcePath(collection, id string) string {

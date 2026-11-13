@@ -22,6 +22,8 @@ Each key has one scope. Each scope includes the ones before it.
 
 - `read`: list and get MQTT profiles and clients. Client passwords are hidden.
 - `write`: also create, update and delete them, including client passwords.
+- `admin`: also download [database backups](#backups). A backup contains every
+  secret on the server, so an `admin` key amounts to full admin access.
 
 ## Conventions
 
@@ -97,6 +99,22 @@ the new permissions.
 - `DELETE /api/v1/mqtt/clients/{id}` (`write`).
 
 Changing a client's password or profile, or deleting it, disconnects it.
+
+## Backups
+
+- `GET /api/v1/backup` (`admin`): returns a consistent snapshot of the
+  database, as `application/octet-stream`. It can be restored by replacing
+  the database file while the server is stopped.
+
+The response has a `Content-Length`. If the backup fails after it has
+started, the body ends early, so check that the whole body was received;
+`curl` reports that as an error, and so does `ugctl backup`. Each backup is
+logged with the key and the client's IP address.
+
+```sh
+curl -fsS -H "Authorization: Bearer $KEY" -o ubergang.db \
+  https://admin.example.com/api/v1/backup
+```
 
 ## Example: provisioning a device
 

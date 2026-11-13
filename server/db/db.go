@@ -8,6 +8,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"path"
@@ -939,6 +940,16 @@ func (d *DB) ClearDatabase() error {
 			}
 		}
 		return nil
+	})
+}
+
+// Backup writes a consistent snapshot of the database to `w`. `start` is
+// called with the snapshot's size before anything is written.
+func (d *DB) Backup(w io.Writer, start func(size int64)) error {
+	return d.db.View(func(tx *bolt.Tx) error {
+		start(tx.Size())
+		_, err := tx.WriteTo(w)
+		return err
 	})
 }
 

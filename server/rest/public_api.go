@@ -42,6 +42,7 @@ func (s *ApiModule) registerPublicEndpoints(r *mux.Router) {
 
 	read := models.ApiKeyScope_API_KEY_SCOPE_READ
 	write := models.ApiKeyScope_API_KEY_SCOPE_WRITE
+	admin := models.ApiKeyScope_API_KEY_SCOPE_ADMIN
 
 	route := func(method, path string, scope models.ApiKeyScope, h publicHandlerFunc) {
 		v1.Methods(method).Path(path).HandlerFunc(s.withApiKey(scope, h))
@@ -58,6 +59,8 @@ func (s *ApiModule) registerPublicEndpoints(r *mux.Router) {
 	route("GET", "/mqtt/clients/{id}", read, s.handlePublicMqttClientGet)
 	route("PATCH", "/mqtt/clients/{id}", write, s.handlePublicMqttClientUpdate)
 	route("DELETE", "/mqtt/clients/{id}", write, s.handlePublicMqttClientDelete)
+
+	route("GET", "/backup", admin, s.handlePublicBackup)
 }
 
 func bearerToken(r *http.Request) (string, bool) {
