@@ -57,7 +57,7 @@ users and backend services, enforcing authentication and authorization policies.
 - **Authentication**: WebAuthn for passwordless auth, JWT tokens
 - **Security**: TLS with Let's Encrypt, SSH server
 - **Serialization**: Protocol Buffers for data models
-- **Monitoring**: Prometheus metrics, pprof debugging
+- **Monitoring**: Prometheus metrics
 - **Configuration**: YAML-based file storage
 
 ### Key Go Dependencies
@@ -125,8 +125,8 @@ npm run lint    # ESLint
 ### Key Components
 
 - **Multi-Protocol Server** - Simultaneous HTTP/HTTPS (port 443/80), SSH
-  (opt-in with `--ssh <port>`), metrics (9090)
+  (opt-in with `--ssh <port>`), metrics (9090, unauthenticated, only `/metrics`)
 - **Authentication Provider** - WebAuthn, PIN codes, SSH public keys
 - **Reverse Proxy** - Routes authenticated requests to configured backends
 - **Configuration Management** - File-based YAML configuration with hot reload
-- **Monitoring & Observability** - Prometheus metrics, structured logging, pprof
+- **Monitoring & Observability** - Prometheus metrics, structured logging
