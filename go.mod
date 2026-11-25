@@ -3,7 +3,7 @@ module boivie/ubergang
 go 1.27.4
 
 require (
-	cel.dev/cel-go v0.33.2
+	cel.dev/cel-go v0.33.4
 	github.com/caddyserver/certmagic v0.25.6
 	github.com/carlmjohnson/requests v0.26.3
 	github.com/charmbracelet/huh v1.0.0
